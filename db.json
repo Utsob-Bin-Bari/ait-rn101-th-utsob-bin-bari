@@ -1,0 +1,68 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "name": "John Doe",
+      "email": "john@example.com",
+      "password": "password123"
+    },
+    {
+      "id": "2",
+      "name": "Jane Smith",
+      "email": "jane@example.com",
+      "password": "password123"
+    },
+    {
+      "id": "3",
+      "name": "utsob",
+      "email": "u@gmail.com",
+      "password": "123456"
+    },
+    {
+      "id": "4",
+      "name": "jabed",
+      "email": "j@gmail.com",
+      "password": "123456"
+    },
+    {
+      "id": "5",
+      "name": "Utsob Bin Bari",
+      "email": "utsobbinbari@gmail.com",
+      "password": "12345678"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "1",
+      "title": "Complete project proposal",
+      "description": "Write and submit the Q1 project proposal",
+      "status": "pending",
+      "priority": "high",
+      "due_date": "2025-01-15T10:00:00.000Z",
+      "tags": [
+        "work",
+        "urgent"
+      ],
+      "image_url": null,
+      "owner_id": "1",
+      "created_at": "2025-01-01T08:00:00.000Z",
+      "updated_at": "2025-01-01T08:00:00.000Z"
+    },
+    {
+      "id": "2",
+      "title": "Review pull requests",
+      "description": "Review and merge pending PRs on GitHub",
+      "status": "in_progress",
+      "priority": "medium",
+      "due_date": "2025-01-12T15:00:00.000Z",
+      "tags": [
+        "development",
+        "code-review"
+      ],
+      "image_url": null,
+      "owner_id": "1",
+      "created_at": "2025-01-02T09:00:00.000Z",
+      "updated_at": "2025-01-05T14:00:00.000Z"
+    }
+  ]
+}

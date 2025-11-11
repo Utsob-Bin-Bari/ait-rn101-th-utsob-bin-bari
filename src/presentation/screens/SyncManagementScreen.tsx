@@ -1,8 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet, Button } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useFocusStatusBar, STATUS_BAR_CONFIGS } from '../utils';
 
 const SyncManagementScreen = () => {
+  useFocusStatusBar(STATUS_BAR_CONFIGS.home);
+  
   const navigation = useNavigation();
 
   return (

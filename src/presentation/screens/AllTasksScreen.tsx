@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import Button from '../component/Button';
+import { useFocusStatusBar, STATUS_BAR_CONFIGS } from '../utils';
 
 type TasksStackParamList = {
   AllTasks: undefined;
@@ -12,6 +13,8 @@ type TasksStackParamList = {
 type NavigationProp = StackNavigationProp<TasksStackParamList>;
 
 const AllTasksScreen = () => {
+  useFocusStatusBar(STATUS_BAR_CONFIGS.home);
+  
   const navigation = useNavigation<NavigationProp>();
 
   return (

@@ -1,21 +1,42 @@
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { colors } from '../constants/colors';
+import { HEADER_MARGIN_TOP } from '../utils';
 
 interface HeaderProps {
   title?: string;
-  LeftIcon: React.ComponentType<{ onPress: () => void; color: string }>;
-  RightIcon: React.ComponentType<{ onPress: () => void; color: string }>;
-  onLeftIconPress: () => void;
-  onRightIconPress: () => void;
+  leftText?: string;
+  LeftIcon?: React.ComponentType<{ onPress: () => void; color: string }>;
+  RightIcon?: React.ComponentType<{ onPress: () => void; color: string }>;
+  onLeftIconPress?: () => void;
+  onRightIconPress?: () => void;
   color?: string;
+  showBorder?: boolean;
 }
-const Header = ({ title = '', LeftIcon, RightIcon, onLeftIconPress, onRightIconPress, color=colors.black }: HeaderProps) => {
+const Header = ({ 
+  title = '', 
+  leftText,
+  LeftIcon, 
+  RightIcon, 
+  onLeftIconPress, 
+  onRightIconPress, 
+  color=colors.black,
+  showBorder = false
+}: HeaderProps) => {
   return (
-    <View style={[styles.mainContainer, { marginTop: Platform.OS === 'ios' ? 20 : 50 }]}>
+    <View style={[
+      styles.mainContainer, 
+      { marginTop: HEADER_MARGIN_TOP },
+      showBorder && styles.borderBottom
+    ]}>
       <View style={[styles.container]}>
-        {LeftIcon && <LeftIcon onPress={onLeftIconPress} color={color} />}
+        <View style={styles.leftSection}>
+          {LeftIcon && onLeftIconPress && <LeftIcon onPress={onLeftIconPress} color={color} />}
+          {leftText && <Text style={[styles.leftText, { color: color }]}>{leftText}</Text>}
+        </View>
         <Text style={[styles.title, { color: color }]}>{title}</Text>
-        {RightIcon && <RightIcon onPress={onRightIconPress} color={color} />}
+        <View style={styles.rightSection}>
+          {RightIcon && onRightIconPress && <RightIcon onPress={onRightIconPress} color={color} />}
+        </View>
       </View>
     </View>
   );
@@ -34,10 +55,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: "90%",
   },
+  leftSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  rightSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
   title: {
     fontSize: 18,
     fontWeight: '600',
     includeFontPadding: false,
+    flex: 1,
+    textAlign: 'center',
+  },
+  leftText: {
+    fontSize: 20,
+    fontWeight: '600',
+    includeFontPadding: false,
+  },
+  borderBottom: {
+    borderBottomWidth: 1,
+    borderBottomColor: colors.devider,
+    paddingBottom: 10,
   },
 });
 export default Header;

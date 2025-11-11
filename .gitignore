@@ -98,3 +98,6 @@ ios/build/
 android/app/build/
 android/build/
 android/.gradle/
+
+# Text files
+*.txt

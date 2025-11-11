@@ -7,4 +7,6 @@ export const colors = {
   blobBlue: '#2E3A59',
   grey: '#D9D9D9',
   devider: '#BFC8E8',
+  red: '#FF3B30',
+  darkGrey: '#808080',
 };

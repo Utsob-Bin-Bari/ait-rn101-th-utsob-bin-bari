@@ -7,8 +7,11 @@ import BackButton from '../component/svgs/BackButton';
 import SearchButton from '../component/svgs/SearchButton';
 import { colors } from '../constants/colors';
 import Button from '../component/Button';
+import { useFocusStatusBar, STATUS_BAR_CONFIGS } from '../utils';
 
 const CreateTaskScreen = () => {
+  useFocusStatusBar(STATUS_BAR_CONFIGS.create);
+  
   const navigation = useNavigation();
 
   return (
