@@ -7,6 +7,8 @@ import CustomButton from '../component/CustomButton';
 import commonStyles from '../styles/commonStyles';
 import { colors } from '../constants/colors';
 import { useFocusStatusBar, STATUS_BAR_CONFIGS } from '../utils';
+import SyncIndicator from '../component/SyncIndicator';
+import { useTasks } from '../hooks/useTasks';
 
 type SettingsStackParamList = {
   SettingsMain: undefined;
@@ -26,7 +28,7 @@ const SettingScreen = () => {
   
   const navigation = useNavigation<NavigationProp>();
   const { loading, handleLogout } = useSettings({ navigation });
-
+  const { syncStatus } = useTasks({ navigation });
   return (
     <ScrollView style={commonStyles.container}>
       <View style={{ 
@@ -60,6 +62,11 @@ const SettingScreen = () => {
               backgroundColor={colors.purple}
             />
           </View>
+          <SyncIndicator
+        isOnline={syncStatus.isOnline}
+        isSyncing={syncStatus.isSyncing}
+        pendingCount={syncStatus.pendingCount}
+      />
         </View>
 
         <View>

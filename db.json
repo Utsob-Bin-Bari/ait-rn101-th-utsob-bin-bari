@@ -29,6 +29,12 @@
       "name": "Utsob Bin Bari",
       "email": "utsobbinbari@gmail.com",
       "password": "12345678"
+    },
+    {
+      "id": "6",
+      "name": "Borkot ",
+      "email": "b@gmail.com",
+      "password": "123456"
     }
   ],
   "tasks": [
@@ -63,6 +69,102 @@
       "owner_id": "1",
       "created_at": "2025-01-02T09:00:00.000Z",
       "updated_at": "2025-01-05T14:00:00.000Z"
+    },
+    {
+      "id": "3",
+      "title": "Buy groceries",
+      "description": "Get milk, eggs, bread, and vegetables",
+      "status": "pending",
+      "priority": "low",
+      "due_date": "2025-11-12T18:00:00.000Z",
+      "tags": [
+        "personal",
+        "shopping"
+      ],
+      "image_url": null,
+      "owner_id": "3",
+      "created_at": "2025-11-11T10:00:00.000Z",
+      "updated_at": "2025-11-11T10:00:00.000Z"
+    },
+    {
+      "id": "4",
+      "title": "Implement offline sync",
+      "description": "Add offline-first functionality with background sync",
+      "status": "completed",
+      "priority": "high",
+      "due_date": "2025-11-11T17:00:00.000Z",
+      "tags": [
+        "development",
+        "feature"
+      ],
+      "image_url": null,
+      "owner_id": "3",
+      "created_at": "2025-11-10T09:00:00.000Z",
+      "updated_at": "2025-11-11T15:00:00.000Z"
+    },
+    {
+      "id": "1762871126647",
+      "title": "Push Up",
+      "description": "100 times",
+      "status": "completed",
+      "priority": "high",
+      "due_date": null,
+      "tags": [
+        "work"
+      ],
+      "image_path": "file:///data/user/0/com.asthait/cache/rn_image_picker_lib_temp_8cef970a-ebad-4887-a6d9-68e07d6819f4.jpg",
+      "image_url": null,
+      "owner_id": "6",
+      "created_at": "2025-11-11T14:25:26.647Z",
+      "updated_at": "2025-11-11T14:26:53.806Z"
+    },
+    {
+      "id": "1762871127112",
+      "title": "Push Up",
+      "description": "100 times",
+      "status": "in_progress",
+      "priority": "high",
+      "due_date": null,
+      "tags": [
+        "work"
+      ],
+      "image_path": "file:///data/user/0/com.asthait/cache/rn_image_picker_lib_temp_8cef970a-ebad-4887-a6d9-68e07d6819f4.jpg",
+      "image_url": null,
+      "owner_id": "6",
+      "created_at": "2025-11-11T14:25:27.112Z",
+      "updated_at": "2025-11-11T14:26:25.460Z"
+    },
+    {
+      "id": "1762874791245",
+      "title": "Pull Up",
+      "description": "200",
+      "status": "pending",
+      "priority": "high",
+      "due_date": null,
+      "tags": [
+        "work"
+      ],
+      "image_path": "file:///Users/utsob/Library/Developer/CoreSimulator/Devices/C8FC06C1-058E-4531-A9C4-42B7013ACDD7/data/Containers/Data/Application/DCA3111E-AE39-40F6-8566-91660B2DA9AE/tmp/A638AF90-16EE-42AE-A814-6D5E9DC754DF.jpg",
+      "image_url": null,
+      "owner_id": "4",
+      "created_at": "2025-11-11T15:26:31.246Z",
+      "updated_at": "2025-11-11T15:26:31.246Z"
+    },
+    {
+      "id": "1762874818753",
+      "title": "Push Up",
+      "description": "100",
+      "status": "in_progress",
+      "priority": "low",
+      "due_date": null,
+      "tags": [
+        "not"
+      ],
+      "image_path": null,
+      "image_url": null,
+      "owner_id": "4",
+      "created_at": "2025-11-11T15:26:58.753Z",
+      "updated_at": "2025-11-11T15:27:42.157Z"
     }
   ]
 }

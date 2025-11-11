@@ -9,4 +9,5 @@ export const colors = {
   devider: '#BFC8E8',
   red: '#FF3B30',
   darkGrey: '#808080',
+  lightGrey: '#E5EAFC',
 };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Text, TouchableOpacity, StyleSheet, ActivityIndicator, ViewStyle } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { colors } from '../constants/colors';
 
@@ -11,6 +11,8 @@ interface CustomButtonProps {
   height?: number;
   opacity?: number;
   disabled?: boolean;
+  loading?: boolean;
+  style?: ViewStyle;
 }
 
 const CustomButton: React.FC<CustomButtonProps> = ({ 
@@ -20,10 +22,12 @@ const CustomButton: React.FC<CustomButtonProps> = ({
   backgroundColor,
   height = 56, 
   opacity = 1,
-  disabled = false
+  disabled = false,
+  loading = false,
+  style
 }) => {
   const finalTextColor = textColor || colors.white;
-  const isDisabled = disabled || !onPress;
+  const isDisabled = disabled || loading || !onPress;
   
   let buttonColor1: string;
   let buttonColor2: string;
@@ -46,7 +50,8 @@ const CustomButton: React.FC<CustomButtonProps> = ({
         {
           opacity: opacity,
           height: height,
-        }
+        },
+        style
       ]} 
       onPress={isDisabled ? undefined : onPress}
       disabled={isDisabled}
@@ -58,9 +63,13 @@ const CustomButton: React.FC<CustomButtonProps> = ({
         end={{ x: 0, y: 1 }}
         style={styles.gradientContainer}
       >
-        <Text style={[styles.text, { color: finalTextColor }]}>
-          {text}
-        </Text>
+        {loading ? (
+          <ActivityIndicator size="small" color={finalTextColor} />
+        ) : (
+          <Text style={[styles.text, { color: finalTextColor }]}>
+            {text}
+          </Text>
+        )}
       </LinearGradient>
     </TouchableOpacity>
   );

@@ -1,11 +1,11 @@
-import SQLite from 'react-native-sqlite-storage';
+import SQLite, { SQLiteDatabase } from 'react-native-sqlite-storage';
 import { DATABASE_SCHEMA, DatabaseHelpers } from './DatabaseSchema';
 
 SQLite.enablePromise(true);
 
 export class DatabaseInit {
   private static instance: DatabaseInit;
-  private db: SQLite.SQLiteDatabase | null = null;
+  private db: SQLiteDatabase | null = null;
 
   private constructor() {}
 
@@ -16,7 +16,7 @@ export class DatabaseInit {
     return DatabaseInit.instance;
   }
 
-  public async initializeDatabase(): Promise<SQLite.SQLiteDatabase> {
+  public async initializeDatabase(): Promise<SQLiteDatabase> {
     try {
       this.db = await SQLite.openDatabase({
         name: 'asthait.db',
@@ -34,7 +34,7 @@ export class DatabaseInit {
     }
   }
 
-  public getDatabase(): SQLite.SQLiteDatabase {
+  public getDatabase(): SQLiteDatabase {
     if (!this.db) {
       throw new Error('Database not initialized. Call initializeDatabase() first.');
     }
