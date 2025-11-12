@@ -1,100 +1,428 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# AsthaIt - React Native Task Management App
+A professional React Native application built with TypeScript for tasks management functionality with **offline-first capabilities**, SQLite database storage, json server, syncing and data recovery.
 
-# Getting Started
+## Features
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+### Core Functionality
+- **Complete CRUD Operations** - Create, read, update, and delete tasks
+- **Offline-First Architecture** - Works seamlessly without internet connection
+- **Image Attachments** - Attach photos from camera or gallery to tasks
+- **Search & Filters** - Search tasks by title, filter by status
+- **Pagination** - Efficient loading for large task lists
+- **Auto-Sync** - Automatic synchronization when online
+- **Task Categories** - Organize tasks with tags and status management
 
-## Step 1: Start Metro
+### User Experience
+- **Authentication System** - Secure login/signup with persistent auth state
+- **Responsive Design** - Optimized for all screen sizes with ScrollView
+- **Pull-to-Refresh** - Manual refresh functionality on Sync Management
+- **Smooth Animations** - Task add/remove animations with react-native-reanimated
+- **Error Handling** - Comprehensive error boundaries and user-friendly messages
+- **Touch-Optimized Interface** - Smooth interactions and gesture support
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+### Technical Excellence
+- **SQLite Database** - Local storage with sync queue management
+- **Redux State Management** - Centralized state with optimistic updates
+- **Clean Architecture** - Layered design for maintainability
+- **TypeScript** - Full type safety and IntelliSense support
+- **Performance Optimized** - Efficient rendering and memory management
+- **Unit Testing** - Jest + React Native Testing Library for critical components
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+## Architecture & Technology Choices
 
-```sh
-# Using npm
-npm start
+### Why React Native (Bare Workflow)?
+- **New Architecture by Default** - Leverages the latest React Native architecture for improved performance and stability
+- **Smaller Application Size** - Bare workflow produces optimized, lean production builds without Expo overhead
+- **More Control Over Native Code** - Direct access to native modules and ability to customize native implementations as needed
 
-# OR using Yarn
+### Why Layered Architectural Design Pattern?
+- **Best for Offline-First Applications** - Clear separation between data persistence, business logic, and UI enables robust offline functionality
+- **Separation of Concerns** - Each layer has specific responsibilities, making the codebase maintainable and testable
+- **Optimistic Updates** - Architecture supports immediate UI updates while background sync operations are queued and processed
+
+## Folder Structure
+
+```
+src/
+├── application/          # Business Logic Layer
+│   ├── services/        # Business logic services
+│   │   ├── auth/        # Authentication services
+│   │   ├── settings/    # Settings and data management
+│   │   └── tasks/       # Task operations and sync
+│   └── store/           # Redux store, actions, reducers
+│
+├── domain/              # Domain Layer
+│   ├── types/           # TypeScript type definitions
+│   │   ├── auth/        # Auth-related types
+│   │   ├── store/       # Redux state types
+│   │   └── tasks/       # Task-related types
+│   └── validators/      # Domain validation rules
+│
+├── infrastructure/      # Infrastructure Layer
+│   ├── api/             # API configuration and requests
+│   │   ├── config/      # API configuration
+│   │   ├── endpoints/   # API endpoints
+│   │   ├── hooks/       # API hooks
+│   │   └── requests/    # API request functions
+│   ├── storage/         # SQLite database utilities
+│   └── utils/           # Infrastructure utilities
+│
+└── presentation/        # Presentation Layer
+    ├── component/       # Reusable UI components
+    ├── constants/       # UI constants (colors, etc.)
+    ├── hooks/           # Custom UI hooks
+    ├── navigation/      # Navigation configuration
+    ├── screens/         # Screen components
+    ├── styles/          # Global styles
+    └── utils/           # Presentation utilities
+```
+
+## Implementation Details
+
+### Animated Reusable Components
+
+The app uses react-native-reanimated for smooth, performant animations:
+
+**SwipeableSimpleTaskCard Component:**
+- **Swipe-to-Complete** - Swipe right to mark task as complete (green background)
+- **Swipe-to-Delete** - Swipe left to delete task (red background)
+- **Spring Animation** - Smooth spring-back animation using `withSpring`
+- **Gesture Detection** - Built with react-native-gesture-handler for native touch response
+- **Visual Feedback** - Dynamic opacity background based on swipe distance
+
+**Other Animations:**
+- **Rotation Animations** - Loading states with 360° rotation using `useNativeDriver`
+- **Sync Icons** - Animated icons in Settings and Sync Management screens
+- **Action Feedback** - Visual feedback for clear data, recover data, and sync operations
+
+### Sync Strategy
+
+Offline-first sync using FIFO (First-In-First-Out) queue processing:
+
+- **Queue Operations** - All CRUD operations stored in SQLite `sync_queue` table
+- **FIFO Processing** - Operations processed in order of creation (oldest first)
+- **Network-Aware** - Automatically syncs when online with valid authentication
+- **Stop-on-Failure** - Stops processing on first failure to preserve operation dependencies
+- **Auto-Cleanup** - Completed operations are deleted from queue immediately
+- **Retry Logic** - Failed operations can be manually retried with reset counter
+
+### Optimistic Update Strategy
+
+Instant UI updates with automatic rollback on failure:
+
+1. **Immediate UI Update** - Redux state updated instantly for responsive UX
+2. **Queue Operation** - Action added to sync queue for background processing
+3. **Background Sync** - Operation synced to server when online
+4. **Rollback on Failure** - UI reverted to previous state if operation fails
+5. **Redux Synchronization** - State refreshed from SQLite on rollback
+
+**Benefits:**
+- Instant user feedback with no loading delays
+- Works perfectly offline with automatic sync when online
+- Consistent UI state through automatic rollback mechanism
+
+### Navigation Structure
+
+The app uses React Navigation v7 with a hybrid **Stack + Bottom Tabs** navigation pattern:
+
+**Root Level: AppNavigator**
+- Checks for existing user session on app start
+- Routes to either Auth or Main based on authentication state
+- Uses Stack Navigator for top-level routing
+
+**Authentication Flow: AuthStackNavigator**
+- **LogIn Screen** - User login with email/password
+- **SignUp Screen** - New user registration
+
+**Main App: TabNavigator (Bottom Tabs)**
+
+Three main tabs with nested stack navigators:
+
+1. **Home Tab** → HomeStackNavigator
+   - **HomeMain** - Dashboard with task overview and statistics
+
+2. **Tasks Tab** → TasksStackNavigator
+   - **AllTasks** - Complete list of all tasks with search/filter
+   - **CreateTask** - Form to create or edit tasks
+
+3. **Settings Tab** → SettingsStackNavigator
+   - **SettingsMain** - App settings, clear/recover data, logout
+   - **SyncManagement** - Advanced sync queue management
+
+**Navigation Features:**
+- Session-based routing (Auth → Main on valid session)
+- Persistent authentication state across app restarts
+- Custom SVG icons for each tab (Home, Tasks, Settings)
+- Custom header components with back navigation
+- Headerless screens with custom UI components
+- Type-safe navigation with TypeScript
+
+**Navigation Flow:**
+```
+App Start → Check Session
+    ↓
+    ├─ No Session → Auth Stack (Login/SignUp)
+    │                    ↓
+    │               Login Success → Main
+    │
+    └─ Valid Session → Main (Bottom Tabs)
+                         ↓
+                    ├─ Home Tab
+                    ├─ Tasks Tab
+                    └─ Settings Tab
+```
+
+### Diff-Match-Patch: Ready But Not Used
+
+**Why It's Not Currently Used:**
+
+Tasks in this app are **not shared between users** due to json-server limitations. Since each user only edits their own tasks, there are no simultaneous edits from multiple users that would require conflict resolution. The current sync strategy uses **last-write-wins** (timestamp-based) which is sufficient for single-user task management.
+
+**What's Already Prepared:**
+
+The project includes full conflict resolution infrastructure ready for production use:
+
+- **Package Installed** - `diff-match-patch` (v1.0.5) in dependencies
+- **Type Definitions** - Complete TypeScript types in `src/types/diff-match-patch.d.ts`
+- **Service Created** - `conflictResolutionService.ts` with 3-way merge implementation
+
+**How It Would Be Used (If Tasks Were Shared):**
+
+If the backend supported collaborative task editing, the service would integrate into the sync flow:
+
+
+**Conflict Resolution Features:**
+- **3-Way Text Merging** - Uses Google's diff-match-patch algorithm for intelligent merging
+- **Tag Deduplication** - Combines and sorts unique tags from both versions
+- **Strategy Options** - Supports both `last-write-wins` and `merge` strategies
+- **Conflict Detection** - Identifies conflicts based on timestamps and field differences
+
+
+This demonstrates production-ready architecture that can scale to multi-user collaborative features when backend support is added.
+
+### Local Notifications & Deep Linking: Skipped Due to Time
+
+**Why It Was Skipped:**
+
+Due to project time constraints, local notifications for due tasks and deep linking navigation were not implemented. The core offline-first sync functionality, task management, and image handling took priority. However, the architecture supports easy integration of notification features.
+
+**Implementation Strategy:**
+
+**Task Scheduling:**
+- Tasks would have `due_date` and `due_time` fields stored in SQLite
+- When a task is created/updated with a due date, schedule a local notification
+- Notification triggers at the exact due date/time even if app is closed
+
+**Background Notification Handling:**
+- Use `react-native-push-notification` for cross-platform local notifications
+- Notifications persist in device's system notification tray
+- Work independently of app state (foreground/background/closed)
+- No internet required - purely local scheduling
+- System handles notification delivery using native APIs
+
+**Deep Linking Strategy:**
+- Tapping notification opens app and navigates directly to specific task
+- Use custom URL scheme: `asthait://task/:taskId`
+- Notification payload includes `taskId` (server ID or local ID)
+- App intercepts URL, extracts taskId, navigates to TaskEditor screen
+- Handle both cold start (app closed) and warm start (app backgrounded)
+- React Navigation's linking configuration maps URL to screen params
+
+**Notification Lifecycle:**
+- **Schedule** - When task created/updated with due_date
+- **Update** - When due_date changes, cancel old and schedule new
+- **Cancel** - When task deleted or marked complete
+- **Store** - Track scheduled notifications in SQLite for cleanup
+
+**Platform-Specific Handling:**
+- **Android** - Notification channels for categorization
+- **iOS** - Permission requests, badge count management
+- **Both** - Handle timezone differences, respect Do Not Disturb settings
+
+**Integration Points:**
+- Notification service in application services layer
+- Schedule calls in tasksService (create/update)
+- Cancel calls in tasksService (delete/complete)
+- Deep link handler in AppNavigator
+- Permission requests on app first launch
+
+**Benefits:**
+- Timely reminders for due tasks
+- Direct navigation from notification tap
+- Works offline with local scheduling
+- Seamless user experience across app states
+
+**Estimated Implementation Time:** 4-6 hours with existing architecture
+
+## Prerequisites
+
+Before starting, ensure you have:
+
+- **Node.js** (v20 or higher)
+- **Yarn** package manager
+- **React Native CLI** installed globally
+- **Android Studio** (for Android development)
+- **Xcode** (for iOS development, macOS only)
+- **CocoaPods** (for iOS dependencies)
+
+## Quick Start
+
+### 1. Install Dependencies
+
+```bash
+yarn install
+```
+
+### 2. iOS Setup (macOS only)
+
+```bash
+yarn pod-start
+```
+
+### 3. Android Setup
+
+```bash
+yarn clean-android
+```
+
+### 4. Start JSON Server
+
+Run the mock API server in a separate terminal:
+
+```bash
+yarn server
+```
+
+The server will start on `http://0.0.0.0:3000`
+
+### 5. Run the App
+
+```bash
 yarn start
-```
-
-## Step 2: Build and run your app
-
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
-
-```sh
-# Using npm
-npm run android
-
-# OR using Yarn
 yarn android
-```
-
-### iOS
-
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
-bundle install
-```
-
-Then, and every time you update your native dependencies, run:
-
-```sh
-bundle exec pod install
-```
-
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-```sh
-# Using npm
-npm run ios
-
-# OR using Yarn
 yarn ios
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+## SQLite Patch
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+This project uses `patch-package` to fix SQLite compatibility issues with React Native 0.82.1:
 
-## Step 3: Modify your app
+- Patch file: `patches/react-native-sqlite-storage+6.0.1.patch`
+- Applied automatically via `postinstall` script
+- Ensures SQLite works correctly on both iOS and Android
 
-Now that you have successfully run the app, let's make changes!
+## Type Safety Additions
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+Added custom TypeScript declarations for libraries without official types:
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+### diff-match-patch (`src/types/diff-match-patch.d.ts`)
+- Complete type definitions for Google's diff-match-patch library
+- Prepared for future collaborative task editing features
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+### react-native-sqlite-storage (`src/types/react-native-sqlite-storage.d.ts`)
+- Type-safe database operations
+- Proper interfaces for Transaction, ResultSet, and SQLiteDatabase
+- Ensures type safety for all database queries
 
-## Congratulations! :tada:
+## Testing
 
-You've successfully run and modified your React Native App. :partying_face:
+### Run Tests
 
-### Now what?
+```bash
+yarn sync-test
+```
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+### What We Test
 
-# Troubleshooting
+The project includes comprehensive unit tests for the **Sync Queue Management System**, which is the core of the offline-first functionality:
 
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+**Test Coverage:**
+- Sync Queue Lifecycle - Adding, completing, and deleting operations
+- Status Consistency - Ensuring Settings and Sync Management screens show same data
+- Operation Deletion - Completed operations are deleted, not marked as completed
+- Queue Statistics - Accurate counting of pending, failed, and completed operations
+- Retry Logic - Failed operations can be reset and retried
+- Cleanup Operations - Removing completed entries from queue
 
-# Learn More
+**Test Results:**
+- **Total Tests:** 9 test cases (all passing)
+- **Coverage Focus:** Sync queue operations, status tracking, and data consistency
+- **Test File:** `__tests__/syncManagement.test.ts`
+- **Framework:** Jest with mocked SQLite database
 
-To learn more about React Native, take a look at the following resources:
+### Why Test Syncing?
 
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+The sync queue is critical for offline-first functionality:
+- Ensures operations are properly queued when offline
+- Validates that completed operations don't clutter the database
+- Confirms status consistency across different screens
+- Verifies retry mechanisms for failed operations
 
+## Available Scripts
 
-*** Work on push notification later 
+| Script | Description |
+|--------|-------------|
+| `yarn start` | Start Metro bundler |
+| `yarn android` | Run on Android device/emulator |
+| `yarn ios` | Run on iOS simulator |
+| `yarn server` | Start JSON Server on port 3000 |
+| `yarn open` | Open iOS project in Xcode |
+| `yarn lint` | Run ESLint for code quality |
+| `yarn test` | Run all Jest tests |
+| `yarn sync-test` | Run sync management tests only |
+| `yarn clean-android` | Clean Android build |
+| `yarn clean-ios` | Clean iOS build and reinstall pods |
+| `yarn pod-start` | Install Ruby dependencies and pods |
+| `yarn pod-install` | Install CocoaPods dependencies |
+| `yarn build-apk-debug` | Build Android APK (debug) |
+| `yarn build-apk-release` | Build Android APK (release) |
+| `yarn build-ios-debug` | Build iOS app (debug) |
+| `yarn build-ios-release` | Build iOS app (release) |
+| `yarn archive-ios` | Archive iOS app for distribution |
+
+## Build Instructions
+
+### Android APK
+
+**Debug Build:**
+```bash
+yarn build-apk-debug
+```
+Output: `android/app/build/outputs/apk/debug/app-debug.apk`
+
+**Release Build:**
+```bash
+yarn build-apk-release
+```
+Output: `android/app/build/outputs/apk/release/app-release.apk`
+
+### iOS Build
+
+**Debug Build:**
+```bash
+yarn build-ios-debug
+```
+
+**Release Build:**
+```bash
+yarn build-ios-release
+```
+
+**Archive for Distribution:**
+```bash
+yarn archive-ios
+```
+Output: `ios/build/AsthaIt.xcarchive`
+
+## Demo & Downloads
+
+### Pre-built APK and Screen Recording
+
+Download the pre-built Android APK and watch the app demo:
+
+**[Download APK & View Demo](https://drive.google.com/drive/folders/1z-CAOCxqKbxn3hzCe5QZzAh5yMuhvH-B?usp=sharing)**
+
+This folder contains:
+- Android APK (ready to install on any Android device)
+- Screen recording demonstrating the app's features
+

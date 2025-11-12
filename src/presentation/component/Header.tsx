@@ -48,7 +48,6 @@ const styles = StyleSheet.create({
   mainContainer: {
     width: '100%',
     alignItems: 'center',
-    backgroundColor:'transparent',
     height: 40,
   },    
   container: {

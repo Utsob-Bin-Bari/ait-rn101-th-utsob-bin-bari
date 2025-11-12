@@ -11,12 +11,22 @@ interface TaskCardProps {
 
 const TaskCard: React.FC<TaskCardProps> = ({ task, onPress }) => {
   const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'No due date';
+    if (!dateString) return 'Not set';
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric'
+    });
+  };
+
+  const formatTime = (dateString: string | null) => {
+    if (!dateString) return 'Not set';
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
     });
   };
 
@@ -53,10 +63,22 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onPress }) => {
             <Text style={styles.title} numberOfLines={2}>
               {task.title}
             </Text>
-            <View style={styles.statusBadge}>
-              <Text style={styles.statusText}>
-                {getStatusLabel(task.status)}
-              </Text>
+            <View style={styles.badgeRow}>
+              <View style={styles.statusBadge}>
+                <Text style={styles.statusText}>
+                  {getStatusLabel(task.status)}
+                </Text>
+              </View>
+              <View style={styles.tagsContainer}>
+                {task.tags.slice(0, 2).map((tag, index) => (
+                  <View key={index} style={styles.statusBadge}>
+                    <Text style={styles.statusText}>{tag}</Text>
+                  </View>
+                ))}
+                {task.tags.length > 2 && (
+                  <Text style={styles.moreTagsText}>+{task.tags.length - 2}</Text>
+                )}
+              </View>
             </View>
           </View>
 
@@ -66,21 +88,14 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onPress }) => {
             </Text>
           )}
 
-          <View style={styles.tagsContainer}>
-            {task.tags.slice(0, 3).map((tag, index) => (
-              <View key={index} style={styles.tag}>
-                <Text style={styles.tagText}>{tag}</Text>
-              </View>
-            ))}
-            {task.tags.length > 3 && (
-              <Text style={styles.moreTagsText}>+{task.tags.length - 3}</Text>
-            )}
-          </View>
-
           <View style={styles.footer}>
             <View style={styles.dateContainer}>
               <Text style={styles.dateLabel}>Due Date</Text>
               <Text style={styles.dateText}>{formatDate(task.due_date)}</Text>
+            </View>
+            <View style={styles.dateContainer}>
+              <Text style={styles.dateLabel}>Due Time</Text>
+              <Text style={styles.dateText}>{formatTime(task.due_date)}</Text>
             </View>
             <View style={styles.priorityContainer}>
               <Text style={styles.priorityLabel}>Priority</Text>
@@ -144,14 +159,20 @@ const styles = StyleSheet.create({
     color: colors.white,
     marginBottom: 12
   },
+  badgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap'
+  },
   statusBadge: {
-    alignSelf: 'flex-start',
     backgroundColor: 'rgba(255, 255, 255, 0.25)',
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.4)'
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+    marginRight: 8,
+    marginBottom: 6
   },
   statusText: {
     fontSize: 12,
@@ -169,21 +190,8 @@ const styles = StyleSheet.create({
   },
   tagsContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 16
-  },
-  tag: {
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 12,
-    marginRight: 6,
-    marginBottom: 6
-  },
-  tagText: {
-    fontSize: 11,
-    color: colors.white,
-    fontWeight: '600'
+    alignItems: 'center',
+    flexWrap: 'wrap'
   },
   moreTagsText: {
     fontSize: 11,
@@ -249,4 +257,3 @@ const styles = StyleSheet.create({
 });
 
 export default TaskCard;
-

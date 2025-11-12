@@ -104,11 +104,11 @@
     },
     {
       "id": "1762871126647",
-      "title": "Push Up",
+      "title": "Pull Up",
       "description": "100 times",
       "status": "completed",
       "priority": "high",
-      "due_date": null,
+      "due_date": "2025-11-12T21:20:00.000Z",
       "tags": [
         "work"
       ],
@@ -116,7 +116,7 @@
       "image_url": null,
       "owner_id": "6",
       "created_at": "2025-11-11T14:25:26.647Z",
-      "updated_at": "2025-11-11T14:26:53.806Z"
+      "updated_at": "2025-11-12T05:27:15.625Z"
     },
     {
       "id": "1762871127112",
@@ -148,13 +148,13 @@
       "image_url": null,
       "owner_id": "4",
       "created_at": "2025-11-11T15:26:31.246Z",
-      "updated_at": "2025-11-12T02:19:51.787Z"
+      "updated_at": "2025-11-12T05:12:50.235Z"
     },
     {
       "id": "1762874818753",
       "title": "Push Up",
       "description": "100",
-      "status": "completed",
+      "status": "in_progress",
       "priority": "low",
       "due_date": null,
       "tags": [
@@ -164,13 +164,13 @@
       "image_url": null,
       "owner_id": "4",
       "created_at": "2025-11-11T15:26:58.753Z",
-      "updated_at": "2025-11-12T02:19:51.307Z"
+      "updated_at": "2025-11-12T04:59:49.978Z"
     },
     {
       "id": "1762913698556",
       "title": "Wre",
       "description": "Were",
-      "status": "pending",
+      "status": "in_progress",
       "priority": "medium",
       "due_date": null,
       "tags": [
@@ -180,13 +180,13 @@
       "image_url": null,
       "owner_id": "4",
       "created_at": "2025-11-12T02:14:58.557Z",
-      "updated_at": "2025-11-12T02:14:58.557Z"
+      "updated_at": "2025-11-12T03:02:58.502Z"
     },
     {
       "id": "1762913870917",
       "title": "Updated",
       "description": "12dfsdf",
-      "status": "completed",
+      "status": "in_progress",
       "priority": "medium",
       "due_date": null,
       "tags": [
@@ -196,7 +196,39 @@
       "image_url": null,
       "owner_id": "4",
       "created_at": "2025-11-12T02:17:50.917Z",
-      "updated_at": "2025-11-12T02:19:21.306Z"
+      "updated_at": "2025-11-12T04:55:10.388Z"
+    },
+    {
+      "id": "1762924340903",
+      "title": "New Task To Check",
+      "description": "No Description here just to check",
+      "status": "pending",
+      "priority": "high",
+      "due_date": "2025-11-15T05:22:32.000Z",
+      "tags": [
+        "work"
+      ],
+      "image_path": null,
+      "image_url": null,
+      "owner_id": "4",
+      "created_at": "2025-11-12T05:12:20.903Z",
+      "updated_at": "2025-11-12T05:12:20.903Z"
+    },
+    {
+      "id": "1762924910046",
+      "title": "Task 9",
+      "description": "It is a proper task without the functionality",
+      "status": "completed",
+      "priority": "high",
+      "due_date": "2025-11-12T05:47:49.670Z",
+      "tags": [
+        "work"
+      ],
+      "image_path": "file:///Users/utsob/Library/Developer/CoreSimulator/Devices/C8FC06C1-058E-4531-A9C4-42B7013ACDD7/data/Containers/Data/Application/DCA3111E-AE39-40F6-8566-91660B2DA9AE/tmp/8875962E-DF4F-44BD-A90F-1213A8625F0C.jpg",
+      "image_url": null,
+      "owner_id": "4",
+      "created_at": "2025-11-12T05:21:50.046Z",
+      "updated_at": "2025-11-12T05:21:50.048Z"
     }
   ]
 }

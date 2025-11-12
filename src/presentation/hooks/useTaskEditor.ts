@@ -25,6 +25,9 @@ export const useTaskEditor = ({ navigation, taskId }: any) => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [imageUri, setImageUri] = useState<string | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [errors, setErrors] = useState<{
     title: string[];
     description: string[];
@@ -40,6 +43,12 @@ export const useTaskEditor = ({ navigation, taskId }: any) => {
       loadTask();
     }
   }, [taskId]);
+
+  useEffect(() => {
+    if (task.due_date) {
+      setSelectedDate(new Date(task.due_date));
+    }
+  }, [task.due_date]);
 
   const loadTask = async () => {
     try {
@@ -105,6 +114,36 @@ export const useTaskEditor = ({ navigation, taskId }: any) => {
   const handleImageRemove = useCallback(() => {
     setImageUri(null);
     setTask(prev => ({ ...prev, image_path: null, image_url: null }));
+  }, []);
+
+  const handleDateChange = useCallback((event: any, date?: Date) => {
+    setShowDatePicker(false);
+    if (date) {
+      const currentDateTime = task.due_date ? new Date(task.due_date) : new Date();
+      date.setHours(currentDateTime.getHours());
+      date.setMinutes(currentDateTime.getMinutes());
+      setSelectedDate(date);
+      setTask(prev => ({ ...prev, due_date: date.toISOString() }));
+    }
+  }, [task.due_date]);
+
+  const handleTimeChange = useCallback((event: any, time?: Date) => {
+    setShowTimePicker(false);
+    if (time) {
+      const dateToUpdate = task.due_date ? new Date(task.due_date) : new Date();
+      dateToUpdate.setHours(time.getHours());
+      dateToUpdate.setMinutes(time.getMinutes());
+      setSelectedDate(dateToUpdate);
+      setTask(prev => ({ ...prev, due_date: dateToUpdate.toISOString() }));
+    }
+  }, [task.due_date]);
+
+  const handleShowDatePicker = useCallback(() => {
+    setShowDatePicker(true);
+  }, []);
+
+  const handleShowTimePicker = useCallback(() => {
+    setShowTimePicker(true);
   }, []);
 
   const validateTask = useCallback(() => {
@@ -197,10 +236,17 @@ export const useTaskEditor = ({ navigation, taskId }: any) => {
     imageUri,
     errors,
     isEditMode: !!taskId,
+    showDatePicker,
+    showTimePicker,
+    selectedDate,
     handleFieldChange,
     handleTagsChange,
     handleImagePick,
     handleImageRemove,
+    handleDateChange,
+    handleTimeChange,
+    handleShowDatePicker,
+    handleShowTimePicker,
     handleSave,
     handleDelete
   };

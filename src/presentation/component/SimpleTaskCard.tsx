@@ -59,17 +59,18 @@ const SimpleTaskCard: React.FC<SimpleTaskCardProps> = ({ task, onPress, onMenuPr
           end={{ x: 1, y: 1 }}
           style={styles.iconGradient}
         >
-          <Text style={styles.iconText}>📝</Text>
         </LinearGradient>
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.title} numberOfLines={1}>
-          {task.title}
-        </Text>
-        <Text style={styles.timeAgo}>
+        <View style={styles.titleContainer}>
+          <Text style={styles.title} numberOfLines={1}>
+            {task.title}
+          </Text>
+          <Text style={styles.timeAgo}>
           {getTimeAgo(task.updated_at || task.created_at)}
         </Text>
+        </View>
         
         <View style={styles.detailsRow}>
           <View style={styles.badge}>
@@ -78,40 +79,19 @@ const SimpleTaskCard: React.FC<SimpleTaskCardProps> = ({ task, onPress, onMenuPr
           <View style={[styles.badge, styles.priorityBadge]}>
             <Text style={styles.badgeText}>{task.priority.toUpperCase()}</Text>
           </View>
+          {task.tags.slice(0, 2).map((tag, index) => (
+            <View key={index} style={[styles.badge, styles.tagBadge]}>
+              <Text style={styles.badgeText}>{tag}</Text>
+            </View>
+          ))}
+          {task.tags.length > 2 && (
+            <Text style={styles.moreText}>+{task.tags.length - 2}</Text>
+          )}
           {task.due_date && (
-            <Text style={styles.dueDate}>📅 {formatDate(task.due_date)}</Text>
+            <Text style={styles.dueDate}>{formatDate(task.due_date)}</Text>
           )}
         </View>
-
-        {task.tags.length > 0 && (
-          <View style={styles.tagsRow}>
-            {task.tags.slice(0, 2).map((tag, index) => (
-              <View key={index} style={styles.tag}>
-                <Text style={styles.tagText}>{tag}</Text>
-              </View>
-            ))}
-            {task.tags.length > 2 && (
-              <Text style={styles.moreText}>+{task.tags.length - 2}</Text>
-            )}
-          </View>
-        )}
-
-        {task.description && (
-          <Text style={styles.description} numberOfLines={2}>
-            {task.description}
-          </Text>
-        )}
       </View>
-
-      <TouchableOpacity
-        style={styles.menuButton}
-        onPress={() => onMenuPress && onMenuPress(task)}
-        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-      >
-        <View style={styles.menuDot} />
-        <View style={styles.menuDot} />
-        <View style={styles.menuDot} />
-      </TouchableOpacity>
     </TouchableOpacity>
   );
 };
@@ -149,6 +129,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-start'
   },
+  titleContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
   title: {
     fontSize: 16,
     fontWeight: '600',
@@ -180,6 +165,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.pink,
     opacity: 0.9
   },
+  tagBadge: {
+    backgroundColor: colors.blobBlue,
+    opacity: 0.8
+  },
   badgeText: {
     fontSize: 10,
     fontWeight: '700',
@@ -191,26 +180,6 @@ const styles = StyleSheet.create({
     color: colors.blobBlue,
     fontWeight: '600',
     marginLeft: 2
-  },
-  tagsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    marginBottom: 6
-  },
-  tag: {
-    backgroundColor: colors.grey,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-    marginRight: 4,
-    marginBottom: 4,
-    opacity: 0.6
-  },
-  tagText: {
-    fontSize: 10,
-    color: colors.blobBlue,
-    fontWeight: '600'
   },
   moreText: {
     fontSize: 10,

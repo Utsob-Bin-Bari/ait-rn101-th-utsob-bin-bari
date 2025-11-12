@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, Platform } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTaskEditor } from '../hooks/useTaskEditor';
 import Header from '../component/Header';
 import BackButton from '../component/svgs/BackButton';
@@ -19,10 +20,17 @@ const CreateTaskScreen = ({ navigation, route }: any) => {
     imageUri,
     errors,
     isEditMode,
+    showDatePicker,
+    showTimePicker,
+    selectedDate,
     handleFieldChange,
     handleTagsChange,
     handleImagePick,
     handleImageRemove,
+    handleDateChange,
+    handleTimeChange,
+    handleShowDatePicker,
+    handleShowTimePicker,
     handleSave,
     handleDelete
   } = useTaskEditor({ navigation, taskId: route.params?.taskId });
@@ -46,6 +54,26 @@ const CreateTaskScreen = ({ navigation, route }: any) => {
         }
       ]
     );
+  };
+
+  const formatDisplayDate = (dateString: string | null) => {
+    if (!dateString) return 'Select date';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
+  const formatDisplayTime = (dateString: string | null) => {
+    if (!dateString) return 'Select time';
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
   };
 
   if (loading) {
@@ -144,6 +172,27 @@ const CreateTaskScreen = ({ navigation, route }: any) => {
               </View>
             </View>
 
+            <View style={styles.dateTimeContainer}>
+              <Text style={styles.label}>Due Date & Time</Text>
+              <View style={styles.dateTimeRow}>
+                <TouchableOpacity 
+                  style={styles.dateTimeButton}
+                  onPress={handleShowDatePicker}
+                >
+                  <Text style={styles.dateTimeLabel}>Date</Text>
+                  <Text style={styles.dateTimeText}>{formatDisplayDate(task.due_date ?? null)}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={styles.dateTimeButton}
+                  onPress={handleShowTimePicker}
+                >
+                  <Text style={styles.dateTimeLabel}>Time</Text>
+                  <Text style={styles.dateTimeText}>{formatDisplayTime(task.due_date ?? null)}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
             <CustomTextInput
               label="Tags (comma separated)"
               value={task.tags?.join(', ')}
@@ -185,6 +234,25 @@ const CreateTaskScreen = ({ navigation, route }: any) => {
             </View>
           </View>
         </ScrollView>
+
+        {showDatePicker && (
+          <DateTimePicker
+            value={selectedDate}
+            mode="date"
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={handleDateChange}
+            minimumDate={new Date()}
+          />
+        )}
+
+        {showTimePicker && (
+          <DateTimePicker
+            value={selectedDate}
+            mode="time"
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={handleTimeChange}
+          />
+        )}
       </View>
     </View>
   );
@@ -224,7 +292,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    marginTop: -10
+    marginTop: -30
   },
   scrollView: {
     flex: 1
@@ -321,6 +389,33 @@ const styles = StyleSheet.create({
   deleteButton: {
     backgroundColor: '#FF6B6B',
     marginTop: 12
+  },
+  dateTimeContainer: {
+    marginBottom: 16
+  },
+  dateTimeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12
+  },
+  dateTimeButton: {
+    flex: 1,
+    backgroundColor: colors.white,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.devider
+  },
+  dateTimeLabel: {
+    fontSize: 12,
+    color: colors.devider,
+    marginBottom: 6,
+    fontWeight: '500'
+  },
+  dateTimeText: {
+    fontSize: 15,
+    color: colors.blobBlue,
+    fontWeight: '600'
   }
 });
 

@@ -112,8 +112,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent'
   },
   selectedDateCircle: {
-    backgroundColor: colors.purple,
-    opacity: 0.15
+    backgroundColor: colors.purple
   },
   dateNumber: {
     fontSize: 16,
@@ -121,7 +120,7 @@ const styles = StyleSheet.create({
     color: colors.blobBlue
   },
   selectedDateNumber: {
-    color: colors.purple,
+    color: colors.white,
     fontWeight: '700'
   }
 });

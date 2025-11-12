@@ -147,7 +147,7 @@ const SettingScreen = () => {
         showBorder={true}
         titleOffset={15}
       />
-      <ScrollView style={commonStyles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView style={[commonStyles.container, {backgroundColor: colors.background}]} showsVerticalScrollIndicator={false}>
       <View style={{ 
         flex: 1, 
         justifyContent: 'space-between',
