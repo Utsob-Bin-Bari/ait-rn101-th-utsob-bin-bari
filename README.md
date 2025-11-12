@@ -303,6 +303,103 @@ yarn android
 yarn ios
 ```
 
+## Running on a Physical Device
+
+By default, the app is configured to work with the emulator/simulator. To run on a **physical device** connected to the same WiFi network:
+
+### Option A: Local Network Setup (Development)
+
+**Step 1: Find Your Computer's IP Address**
+
+On macOS/Linux:
+```bash
+ifconfig | grep "inet "
+# Look for your local IP (e.g., inet 192.168.1.100)
+```
+
+On Windows:
+```bash
+ipconfig
+# Look for IPv4 Address (e.g., 192.168.1.100)
+```
+
+**Step 2: Update API Configuration**
+
+Edit `src/infrastructure/api/config/apiConfig.ts`:
+
+```typescript
+export const API_BASE_URL = Platform.OS === 'android' 
+  ? 'http://YOUR_COMPUTER_IP:3000'  // e.g., 'http://192.168.1.100:3000'
+  : 'http://localhost:3000';
+```
+
+**Step 3: Enable Cleartext Traffic (HTTP)**
+
+Add to `android/gradle.properties`:
+```properties
+usesCleartextTraffic=true
+```
+
+**Step 4: Ensure JSON Server is Accessible**
+
+Make sure json-server is running on `0.0.0.0` (not just localhost):
+```bash
+yarn server
+# Server runs on http://0.0.0.0:3000 (accessible from other devices)
+```
+
+**Step 5: Rebuild and Run**
+
+```bash
+# Clean previous builds
+yarn clean-android
+
+# Run on connected device
+yarn android
+
+# Or build APK and install
+yarn build-apk-debug
+```
+
+**Requirements:**
+- Physical device and computer must be on the same WiFi network
+- Firewall must allow connections on port 3000
+- JSON server must be running while using the app
+
+### Option B: Production Backend (Release)
+
+For production APK builds that work anywhere:
+
+**Step 1: Deploy Backend**
+
+Deploy your backend to a cloud service:
+- Heroku, Railway, Render, DigitalOcean, AWS, etc.
+- Use HTTPS for secure connections
+
+**Step 2: Update API Configuration**
+
+Edit `src/infrastructure/api/config/apiConfig.ts`:
+
+```typescript
+export const API_BASE_URL = __DEV__
+  ? Platform.OS === 'android' 
+    ? 'http://10.0.2.2:3000'        // Emulator in development
+    : 'http://localhost:3000'        // iOS simulator in development
+  : 'https://your-backend.com/api'; // Production backend (HTTPS)
+```
+
+**Step 3: Build Release APK**
+
+```bash
+yarn build-apk-release
+```
+
+**Benefits:**
+- Works on any device with internet connection
+- No local server needed
+- Secure HTTPS connection
+- Production-ready deployment
+
 ## SQLite Patch
 
 This project uses `patch-package` to fix SQLite compatibility issues with React Native 0.82.1:
