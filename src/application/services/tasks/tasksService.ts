@@ -3,7 +3,7 @@ import { syncQueueService } from './syncQueueService';
 import { userSessionStorage } from '../../../infrastructure/storage/userSessionStorage';
 import { OPERATION_TYPES, ENTITY_TYPES, DatabaseHelpers } from '../../../infrastructure/storage/DatabaseSchema';
 import { CreateTaskPayload, UpdateTaskPayload } from '../../../domain/types/tasks/TaskType';
-import NetInfo from '@react-native-community/netinfo';
+import { NetworkService } from '../../../infrastructure/utils';
 
 export const tasksService = {
   fetchTasks: async (): Promise<{ success: boolean; data?: Task[]; error?: string }> => {
@@ -16,8 +16,8 @@ export const tasksService = {
       const userId = sessionResult.data.id;
       const tasks = await tasksSQLiteService.getAllTasks(userId);
 
-      const netState = await NetInfo.fetch();
-      if (netState.isConnected) {
+      const isOnlineAndServerAvailable = await NetworkService.checkOnlineAndServerAvailable();
+      if (isOnlineAndServerAvailable) {
         try {
           const { fetchTasksRequest } = await import('../../../infrastructure/api/requests/tasks/fetchTasksRequest');
           const serverResult = await fetchTasksRequest(sessionResult.data.accessToken);

@@ -11,6 +11,7 @@ interface HeaderProps {
   onRightIconPress?: () => void;
   color?: string;
   showBorder?: boolean;
+  titleOffset?: number;
 }
 const Header = ({ 
   title = '', 
@@ -20,7 +21,8 @@ const Header = ({
   onLeftIconPress, 
   onRightIconPress, 
   color=colors.black,
-  showBorder = false
+  showBorder = false,
+  titleOffset = 0
 }: HeaderProps) => {
   return (
     <View style={[
@@ -33,7 +35,7 @@ const Header = ({
           {LeftIcon && onLeftIconPress && <LeftIcon onPress={onLeftIconPress} color={color} />}
           {leftText && <Text style={[styles.leftText, { color: color }]}>{leftText}</Text>}
         </View>
-        <Text style={[styles.title, { color: color }]}>{title}</Text>
+        <Text style={[styles.title, { color: color, marginLeft: titleOffset }]}>{title}</Text>
         <View style={styles.rightSection}>
           {RightIcon && onRightIconPress && <RightIcon onPress={onRightIconPress} color={color} />}
         </View>
@@ -58,11 +60,15 @@ const styles = StyleSheet.create({
   leftSection: {
     flexDirection: 'row',
     alignItems: 'center',
+    minWidth: 40,
+    zIndex: 10,
   },
   rightSection: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
+    minWidth: 40,
+    zIndex: 10,
   },
   title: {
     fontSize: 18,
@@ -70,6 +76,7 @@ const styles = StyleSheet.create({
     includeFontPadding: false,
     flex: 1,
     textAlign: 'center',
+    zIndex: 1,
   },
   leftText: {
     fontSize: 20,

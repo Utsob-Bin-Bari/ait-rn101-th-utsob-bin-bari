@@ -3,12 +3,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../application/store/initialState';
 import { tasksService } from '../../application/services/tasks/tasksService';
 import { searchFilterService } from '../../application/services/tasks/searchFilterService';
-import { paginationService } from '../../application/services/tasks/paginationService';
 import { setTasks, setTasksLoading, setSyncStatus } from '../../application/store/action/tasks';
 import { Task } from '../../application/services/tasks/tasksSQLiteService';
 import { syncProcessor, startSyncProcessor } from '../../application/services/tasks/syncProcessor';
 import { syncQueueService } from '../../application/services/tasks/syncQueueService';
-import NetInfo from '@react-native-community/netinfo';
+import { syncCleanupService } from '../../application/services/tasks/syncCleanupService';
+import { syncDebugService } from '../../application/services/tasks/syncDebugService';
+import { NetworkService } from '../../infrastructure/utils';
 
 export const useTasks = ({ navigation }: any) => {
   const dispatch = useDispatch();
@@ -18,26 +19,63 @@ export const useTasks = ({ navigation }: any) => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [displayedTasks, setDisplayedTasks] = useState<Task[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const filteredTasks = useMemo(() => {
-    return searchFilterService.searchTasks(
+  const filteredTasks = useMemo(() => 
+    searchFilterService.searchTasks(
       allTasks,
       searchQuery,
       statusFilter,
       selectedTags
-    );
-  }, [allTasks, searchQuery, statusFilter, selectedTags]);
+    ),
+    [allTasks, searchQuery, statusFilter, selectedTags]
+  );
 
-  const taskCounts = useMemo(() => {
-    return searchFilterService.getTaskCounts(allTasks);
-  }, [allTasks]);
+  const taskCounts = useMemo(() => 
+    searchFilterService.getTaskCounts(allTasks),
+    [allTasks]
+  );
+  const uniqueTags = useMemo(() => 
+    searchFilterService.extractUniqueTags(allTasks),
+    [allTasks]
+  );
 
-  const uniqueTags = useMemo(() => {
-    return searchFilterService.extractUniqueTags(allTasks);
-  }, [allTasks]);
+  useEffect(() => {
+    syncCleanupService.performInitialCleanup();
+    loadTasks();
+    setupSyncProcessor();
+    setupNetworkListener();
+  }, []);
 
-  const updateSyncStatus = useCallback(async (isOnline: boolean) => {
+  useEffect(() => {
+    setDisplayedTasks(filteredTasks);
+  }, [filteredTasks]);
+
+  const setupSyncProcessor = async () => {
+    await startSyncProcessor();
+    setTimeout(async () => {
+      await syncDebugService.logSyncStatus();
+    }, 3000);
+  };
+
+  const setupNetworkListener = () => {
+    const unsubscribe = NetworkService.subscribeToNetworkState((isConnected) => {
+      updateSyncStatus(isConnected);
+    });
+    return unsubscribe;
+  };
+  useEffect(() => {
+    loadTasks();
+    setupSyncProcessor();
+    const unsubscribe = setupNetworkListener();
+    
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+  const updateSyncStatus = async (isOnline: boolean) => {
     const stats = await syncQueueService.getQueueStats();
     dispatch(setSyncStatus({
       isOnline,
@@ -45,9 +83,9 @@ export const useTasks = ({ navigation }: any) => {
       lastSyncAt: null,
       pendingCount: stats.pending
     }));
-  }, [dispatch]);
+  };
 
-  const loadTasks = useCallback(async () => {
+  const loadTasks = async () => {
     try {
       dispatch(setTasksLoading(true));
       const result = await tasksService.fetchTasks();
@@ -64,38 +102,15 @@ export const useTasks = ({ navigation }: any) => {
     } finally {
       dispatch(setTasksLoading(false));
     }
-  }, [dispatch]);
-
-  const setupSyncProcessor = useCallback(async () => {
-    await startSyncProcessor();
-  }, []);
-
-  const setupNetworkListener = useCallback(() => {
-    const unsubscribe = NetInfo.addEventListener(state => {
-      updateSyncStatus(state.isConnected || false);
-    });
-    return unsubscribe;
-  }, [updateSyncStatus]);
-
-  useEffect(() => {
-    loadTasks();
-    setupSyncProcessor();
-    const unsubscribe = setupNetworkListener();
-    
-    return () => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
-    };
-  }, [loadTasks, setupSyncProcessor, setupNetworkListener]);
+  };
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     await loadTasks();
-    const netState = await NetInfo.fetch();
-    await updateSyncStatus(netState.isConnected || false);
+    const networkState = await NetworkService.getCurrentNetworkState();
+    await updateSyncStatus(networkState.isConnected || false);
     setRefreshing(false);
-  }, [loadTasks, updateSyncStatus]);
+  }, []);
 
   const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
@@ -117,6 +132,10 @@ export const useTasks = ({ navigation }: any) => {
     navigation.navigate('CreateTask', { taskId: task.local_id });
   }, [navigation]);
 
+  const handleTaskPressFromHome = useCallback((task: Task) => {
+    navigation.navigate('Tasks', { screen: 'CreateTask', params: { taskId: task.local_id } });
+  }, [navigation]);
+
   const handleCreateTask = useCallback(() => {
     navigation.navigate('CreateTask');
   }, [navigation]);
@@ -124,8 +143,32 @@ export const useTasks = ({ navigation }: any) => {
   const loadMore = useCallback(() => {
   }, []);
 
+  const handleCompleteTask = useCallback(async (task: Task) => {
+    if (task.status === 'completed') return;
+    
+    try {
+      const result = await tasksService.updateTask(task.local_id, { status: 'completed' });
+      if (result.success) {
+        await loadTasks();
+      }
+    } catch (err: any) {
+      console.error('Error completing task:', err);
+    }
+  }, []);
+
+  const handleDeleteTask = useCallback(async (task: Task) => {
+    try {
+      const result = await tasksService.deleteTask(task.local_id);
+      if (result.success) {
+        await loadTasks();
+      }
+    } catch (err: any) {
+      console.error('Error deleting task:', err);
+    }
+  }, []);
+
   return {
-    tasks: filteredTasks,
+    tasks: displayedTasks,
     loading,
     refreshing,
     error,
@@ -140,8 +183,11 @@ export const useTasks = ({ navigation }: any) => {
     handleFilterStatus,
     handleFilterTags,
     handleTaskPress,
+    handleTaskPressFromHome,
     handleCreateTask,
     handleRefresh,
+    handleCompleteTask,
+    handleDeleteTask,
     loadMore,
     hasMore: false
   };

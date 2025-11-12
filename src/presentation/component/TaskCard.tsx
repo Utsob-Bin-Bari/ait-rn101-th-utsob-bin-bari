@@ -87,12 +87,6 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onPress }) => {
               <Text style={styles.priorityText}>{task.priority.toUpperCase()}</Text>
             </View>
           </View>
-
-          {task.sync_status === 'pending' && (
-            <View style={styles.syncIndicator}>
-              <Text style={styles.syncText}>⏱ Syncing...</Text>
-            </View>
-          )}
         </View>
       </LinearGradient>
     </TouchableOpacity>

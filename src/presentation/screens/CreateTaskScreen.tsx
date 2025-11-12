@@ -70,8 +70,8 @@ const CreateTaskScreen = ({ navigation, route }: any) => {
         <Header 
           title={isEditMode ? 'Edit Task' : 'Create A Task'} 
           LeftIcon={BackButton} 
-          onLeftIconPress={() => navigation.goBack()} 
-          color={colors.white} 
+          onLeftIconPress={() => navigation.navigate('Tasks',{ screen: 'AllTasks' })} 
+          color={colors.white}
         />
       </LinearGradient>
 

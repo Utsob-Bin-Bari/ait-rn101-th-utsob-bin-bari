@@ -2,7 +2,7 @@ import { syncQueueService, QueueOperation } from './syncQueueService';
 import { tasksSQLiteService } from './tasksSQLiteService';
 import { userSessionStorage } from '../../../infrastructure/storage/userSessionStorage';
 import { OPERATION_TYPES, ENTITY_TYPES, DatabaseHelpers } from '../../../infrastructure/storage/DatabaseSchema';
-import NetInfo from '@react-native-community/netinfo';
+import { NetworkService } from '../../../infrastructure/utils';
 
 interface SyncProcessor {
   isRunning: boolean;
@@ -27,7 +27,7 @@ export const startSyncProcessor = async (): Promise<void> => {
 
   syncProcessor.intervalId = setInterval(async () => {
     await processQueueOnce();
-  }, 30000);
+  }, 10000);
 };
 
 export const stopSyncProcessor = async (): Promise<void> => {
@@ -45,19 +45,22 @@ export const stopSyncProcessor = async (): Promise<void> => {
 
 const processQueueOnce = async (): Promise<void> => {
   if (syncProcessor.processingCount > 0) {
+    console.warn('Sync processor already running, skipping...');
     return;
   }
 
   try {
     syncProcessor.processingCount++;
 
-    const netState = await NetInfo.fetch();
-    if (!netState.isConnected) {
+    const networkState = await NetworkService.getCurrentNetworkState();
+    if (!networkState.isConnected) {
+      console.warn('Sync skipped: Device is offline');
       return;
     }
 
     const sessionResult = await userSessionStorage.get();
     if (!sessionResult.success || !sessionResult.data?.accessToken) {
+      console.warn('Sync skipped: No valid session or access token');
       return;
     }
 
@@ -68,6 +71,8 @@ const processQueueOnce = async (): Promise<void> => {
     if (pendingOperations.length === 0) {
       return;
     }
+
+    console.warn(`Starting sync for ${pendingOperations.length} pending operation(s)`);
 
     let processedCount = 0;
     let failedCount = 0;
@@ -88,19 +93,25 @@ const processQueueOnce = async (): Promise<void> => {
 
         if (success) {
           processedCount++;
-          await syncQueueService.markAsCompleted(operation.id);
+          await syncQueueService.markOperationCompleted(operation.id);
+          console.warn(`✓ Synced ${operation.operation_type} ${operation.entity_type}`);
           await new Promise<void>(resolve => setTimeout(() => resolve(), 200));
         } else {
           failedCount++;
-          await syncQueueService.markAsFailed(operation.id);
+          await syncQueueService.incrementRetryCount(operation.id);
+          console.error(`✗ Failed to sync ${operation.operation_type} ${operation.entity_type}`);
           break;
         }
       } catch (error) {
         console.error(`Error processing sync operation ${operation.id}:`, error);
-        await syncQueueService.markAsFailed(operation.id);
+        await syncQueueService.incrementRetryCount(operation.id);
         failedCount++;
         break;
       }
+    }
+
+    if (processedCount > 0 || failedCount > 0) {
+      console.warn(`Sync completed: ${processedCount} successful, ${failedCount} failed`);
     }
 
   } catch (error) {
@@ -198,5 +209,29 @@ export const getSyncProcessorStatus = (): { isRunning: boolean; isProcessing: bo
     isRunning: syncProcessor.isRunning,
     isProcessing: syncProcessor.processingCount > 0
   };
+};
+
+export const manualProcessQueue = async (): Promise<{ processed: number; failed: number }> => {
+  try {
+    console.warn('Manual sync triggered');
+    
+    const networkState = await NetworkService.getCurrentNetworkState();
+    if (!networkState.isConnected) {
+      console.error('Manual sync failed: Device is offline');
+      return { processed: 0, failed: 0 };
+    }
+
+    await processQueueOnce();
+    
+    const queueStatus = await syncQueueService.getRealQueueStatus();
+    
+    return { 
+      processed: 0,
+      failed: queueStatus.failed || 0 
+    };
+  } catch (error) {
+    console.error('Error in manual queue processing:', error);
+    return { processed: 0, failed: 0 };
+  }
 };
 

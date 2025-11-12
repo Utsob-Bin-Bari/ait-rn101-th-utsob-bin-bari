@@ -42,7 +42,6 @@ const HorizontalTaskList: React.FC<HorizontalTaskListProps> = ({
 
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>📝</Text>
         <Text style={styles.emptyMessage}>{emptyMessage}</Text>
       </View>
     );
@@ -67,7 +66,6 @@ const HorizontalTaskList: React.FC<HorizontalTaskListProps> = ({
 const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: 16,
-    paddingVertical: 8
   },
   emptyContainer: {
     width: 328,

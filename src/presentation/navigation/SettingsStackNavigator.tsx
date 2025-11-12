@@ -16,7 +16,7 @@ const SettingsStackNavigator = () => {
       <Stack.Screen 
         name="SyncManagement" 
         component={SyncManagementScreen}
-        options={{ title: 'Sync Management' }}
+        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   );

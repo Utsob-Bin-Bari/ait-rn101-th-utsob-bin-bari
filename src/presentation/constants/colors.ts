@@ -10,4 +10,9 @@ export const colors = {
   red: '#FF3B30',
   darkGrey: '#808080',
   lightGrey: '#E5EAFC',
+  error: '#FF3B30',
+  success: '#34C759',
+  warning: '#FF9500',
+  border: '#BFC8E8',
+  inputBackground: '#FFFFFF',
 };

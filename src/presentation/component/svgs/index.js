@@ -5,4 +5,8 @@ export { default as SearchButton } from './SearchButton';
 export { default as HomeIcon } from './HomeIcon';
 export { default as TasksIcon } from './TasksIcon';
 export { default as SettingsIcon } from './SettingsIcon';
-
+export { default as BinIcon } from './BinIcon';
+export { default as HardDriveIcon } from './HardDriveIcon';
+export { default as SyncIcon } from './SyncIcon';
+export { default as CheckIcon } from './CheckIcon';
+export { default as ProfileIcon } from './ProfileIcon';

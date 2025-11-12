@@ -202,7 +202,6 @@ export const syncQueueService = {
         tx.executeSql(
           `SELECT 
             SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
-            SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
             SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed
            FROM sync_queue`,
           [],
@@ -210,12 +209,218 @@ export const syncQueueService = {
             const row = result.rows.item(0);
             resolve({
               pending: row.pending || 0,
-              completed: row.completed || 0,
+              completed: 0,
               failed: row.failed || 0
             });
           },
           (_, error) => {
             console.error('Error fetching queue stats:', error);
+            reject(error);
+            return false;
+          }
+        );
+      });
+    });
+  },
+
+  getAllOperations: async (): Promise<QueueOperation[]> => {
+    const db = DatabaseInit.getInstance().getDatabase();
+
+    return new Promise((resolve, reject) => {
+      db.transaction(tx => {
+        tx.executeSql(
+          `SELECT * FROM sync_queue ORDER BY created_at ASC`,
+          [],
+          (_, result) => {
+            const operations: QueueOperation[] = [];
+            for (let i = 0; i < result.rows.length; i++) {
+              operations.push(result.rows.item(i) as QueueOperation);
+            }
+            resolve(operations);
+          },
+          (_, error) => {
+            console.error('Error fetching all operations:', error);
+            reject(error);
+            return false;
+          }
+        );
+      });
+    });
+  },
+
+  getFailedOperations: async (): Promise<QueueOperation[]> => {
+    const db = DatabaseInit.getInstance().getDatabase();
+
+    return new Promise((resolve, reject) => {
+      db.transaction(tx => {
+        tx.executeSql(
+          `SELECT * FROM sync_queue 
+           WHERE status = 'failed' 
+           ORDER BY created_at ASC`,
+          [],
+          (_, result) => {
+            const operations: QueueOperation[] = [];
+            for (let i = 0; i < result.rows.length; i++) {
+              operations.push(result.rows.item(i) as QueueOperation);
+            }
+            resolve(operations);
+          },
+          (_, error) => {
+            console.error('Error fetching failed operations:', error);
+            reject(error);
+            return false;
+          }
+        );
+      });
+    });
+  },
+
+  getRealQueueStatus: async (): Promise<{
+    pending: number;
+    failed: number;
+    completed: number;
+    total: number;
+  }> => {
+    const db = DatabaseInit.getInstance().getDatabase();
+
+    return new Promise((resolve, reject) => {
+      db.transaction(tx => {
+        tx.executeSql(
+          `SELECT 
+            SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
+            SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed,
+            COUNT(*) as total
+           FROM sync_queue`,
+          [],
+          (_, result) => {
+            const row = result.rows.item(0);
+            resolve({
+              pending: row.pending || 0,
+              failed: row.failed || 0,
+              completed: 0,
+              total: row.total || 0
+            });
+          },
+          (_, error) => {
+            console.error('Error fetching real queue status:', error);
+            reject(error);
+            return false;
+          }
+        );
+      });
+    });
+  },
+
+  resetFailedOperation: async (operationId: number): Promise<void> => {
+    const db = DatabaseInit.getInstance().getDatabase();
+
+    return new Promise((resolve, reject) => {
+      db.transaction(tx => {
+        tx.executeSql(
+          `UPDATE sync_queue SET status = 'pending', retry_count = 0 WHERE id = ?`,
+          [operationId],
+          (_, result) => {
+            resolve();
+          },
+          (_, error) => {
+            console.error('Error resetting failed operation:', error);
+            reject(error);
+            return false;
+          }
+        );
+      });
+    });
+  },
+
+  resetAllFailedOperations: async (): Promise<number> => {
+    const db = DatabaseInit.getInstance().getDatabase();
+
+    return new Promise((resolve, reject) => {
+      db.transaction(tx => {
+        tx.executeSql(
+          `UPDATE sync_queue SET status = 'pending', retry_count = 0 WHERE status = 'failed'`,
+          [],
+          (_, result) => {
+            resolve(result.rowsAffected || 0);
+          },
+          (_, error) => {
+            console.error('Error resetting all failed operations:', error);
+            reject(error);
+            return false;
+          }
+        );
+      });
+    });
+  },
+
+  markOperationCompleted: async (operationId: number): Promise<void> => {
+    const db = DatabaseInit.getInstance().getDatabase();
+
+    return new Promise((resolve, reject) => {
+      db.transaction(tx => {
+        tx.executeSql(
+          `DELETE FROM sync_queue WHERE id = ?`,
+          [operationId],
+          (_, result) => {
+            resolve();
+          },
+          (_, error) => {
+            console.error('Error deleting completed operation:', error);
+            reject(error);
+            return false;
+          }
+        );
+      });
+    });
+  },
+
+  incrementRetryCount: async (operationId: number): Promise<void> => {
+    const db = DatabaseInit.getInstance().getDatabase();
+
+    return new Promise((resolve, reject) => {
+      db.transaction(tx => {
+        tx.executeSql(
+          `UPDATE sync_queue 
+           SET retry_count = retry_count + 1,
+               status = CASE 
+                 WHEN retry_count + 1 >= max_retries THEN 'failed' 
+                 ELSE status 
+               END 
+           WHERE id = ?`,
+          [operationId],
+          (_, result) => {
+            resolve();
+          },
+          (_, error) => {
+            console.error('Error incrementing retry count:', error);
+            reject(error);
+            return false;
+          }
+        );
+      });
+    });
+  },
+
+  getQueueStatus: async (): Promise<{ pending: number; failed: number }> => {
+    const db = DatabaseInit.getInstance().getDatabase();
+
+    return new Promise((resolve, reject) => {
+      db.transaction(tx => {
+        tx.executeSql(
+          `SELECT 
+            SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
+            SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed
+           FROM sync_queue`,
+          [],
+          (_, result) => {
+            const row = result.rows.item(0);
+            resolve({
+              pending: row.pending || 0,
+              failed: row.failed || 0
+            });
+          },
+          (_, error) => {
+            console.error('Error fetching queue status:', error);
             reject(error);
             return false;
           }

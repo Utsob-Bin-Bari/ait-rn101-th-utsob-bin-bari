@@ -18,8 +18,8 @@ const AllTasksScreen = ({ navigation }: any) => {
     loading,
     searchQuery,
     handleSearch,
-    handleTaskPress,
-    handleCreateTask
+    handleCreateTask,
+    handleTaskPress
   } = useTasks({ navigation });
 
   const formatMonthYear = (date: Date) => {
@@ -52,7 +52,7 @@ const AllTasksScreen = ({ navigation }: any) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <BackButton 
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.navigate('Main',{ screen: 'Home' })}
           color={colors.blobBlue}
         />
         <SearchButton 
