@@ -1,5 +1,6 @@
 export interface AuthState {
   isAuthenticated: boolean;
+  isGuest: boolean;
   user: {
     id: string;
     email: string;

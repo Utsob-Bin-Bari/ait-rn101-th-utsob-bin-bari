@@ -8,6 +8,15 @@ const authReducer = (state: AuthState = initialAuthState, action: any): AuthStat
         ...state,
         user: action.payload,
         isAuthenticated: true,
+        isGuest: false,
+        loading: false,
+      };
+    case 'SET_GUEST_INFO':
+      return {
+        ...state,
+        user: action.payload,
+        isAuthenticated: true,
+        isGuest: true,
         loading: false,
       };
     case 'CLEAR_USER_INFO':
@@ -15,6 +24,7 @@ const authReducer = (state: AuthState = initialAuthState, action: any): AuthStat
         ...state,
         user: null,
         isAuthenticated: false,
+        isGuest: false,
         loading: false,
       };
     case 'SET_AUTH_LOADING':

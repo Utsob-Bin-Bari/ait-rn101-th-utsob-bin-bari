@@ -13,6 +13,7 @@ A professional React Native application built with TypeScript for tasks manageme
 - **Task Categories** - Organize tasks with tags and status management
 
 ### User Experience
+- **Guest Mode** - Explore the app instantly without authentication (local-only)
 - **Authentication System** - Secure login/signup with persistent auth state
 - **Responsive Design** - Optimized for all screen sizes with ScrollView
 - **Pull-to-Refresh** - Manual refresh functionality on Sync Management
@@ -305,11 +306,35 @@ yarn ios
 
 ## Running on a Physical Device
 
-By default, the app is configured to work with the emulator/simulator. To run on a **physical device** connected to the same WiFi network:
+By default, the app is configured to work with the emulator/simulator. To test on a **physical device**, choose one of these options:
 
-### Option A: Local Network Setup (Development)
+### Option 1: Guest Mode (Recommended for Quick Testing)
 
-**Step 1: Find Your Computer's IP Address**
+**Easiest way to test the app** - no server setup required:
+
+1. Build and install the app on your device
+2. Launch the app and tap **"Continue as Guest"**
+3. All features work locally (create, edit, delete tasks)
+4. No sync - data stays on device only
+
+**Perfect for:**
+- Quick UI/UX testing
+- Feature demonstrations
+- Offline functionality validation
+
+**Note:** Guest data is deleted on logout.
+
+---
+
+### Option 2: Local Network Setup (Full Features)
+
+For testing with **server sync** on a physical device:
+
+*Already have an account? Skip to [Option 3](#option-3-production-backend-release)*
+
+### Step-by-Step Setup:
+
+**1. Find Your Computer's IP Address**
 
 On macOS/Linux:
 ```bash
@@ -333,14 +358,14 @@ export const API_BASE_URL = Platform.OS === 'android'
   : 'http://localhost:3000';
 ```
 
-**Step 3: Enable Cleartext Traffic (HTTP)**
+**3. Enable Cleartext Traffic (HTTP)**
 
 Add to `android/gradle.properties`:
 ```properties
 usesCleartextTraffic=true
 ```
 
-**Step 4: Ensure JSON Server is Accessible**
+**4. Ensure JSON Server is Accessible**
 
 Make sure json-server is running on `0.0.0.0` (not just localhost):
 ```bash
@@ -348,7 +373,7 @@ yarn server
 # Server runs on http://0.0.0.0:3000 (accessible from other devices)
 ```
 
-**Step 5: Rebuild and Run**
+**5. Rebuild and Run**
 
 ```bash
 # Clean previous builds
@@ -366,17 +391,19 @@ yarn build-apk-debug
 - Firewall must allow connections on port 3000
 - JSON server must be running while using the app
 
-### Option B: Production Backend (Release)
+---
 
-For production APK builds that work anywhere:
+### Option 3: Production Backend (Release)
 
-**Step 1: Deploy Backend**
+For production APK builds with **existing backend**:
+
+**1. Deploy Backend**
 
 Deploy your backend to a cloud service:
 - Heroku, Railway, Render, DigitalOcean, AWS, etc.
 - Use HTTPS for secure connections
 
-**Step 2: Update API Configuration**
+**2. Update API Configuration**
 
 Edit `src/infrastructure/api/config/apiConfig.ts`:
 
@@ -388,7 +415,7 @@ export const API_BASE_URL = __DEV__
   : 'https://your-backend.com/api'; // Production backend (HTTPS)
 ```
 
-**Step 3: Build Release APK**
+**3. Build Release APK**
 
 ```bash
 yarn build-apk-release

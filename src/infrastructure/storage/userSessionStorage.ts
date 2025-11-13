@@ -1,5 +1,6 @@
 import { DatabaseInit } from './DatabaseInit';
 import { DatabaseHelpers } from './DatabaseSchema';
+import { GUEST_USER_ID } from '../../domain/types/auth';
 
 export const userSessionStorage = {
   store: async (userData: {
@@ -7,6 +8,7 @@ export const userSessionStorage = {
     email: string;
     name: string;
     accessToken: string;
+    isGuest?: boolean;
   }): Promise<{ success: boolean; error?: string }> => {
     try {
       const dbInit = DatabaseInit.getInstance();
@@ -65,6 +67,7 @@ export const userSessionStorage = {
       email: string;
       name: string;
       accessToken: string;
+      isGuest?: boolean;
     };
     error?: string;
   }> => {
@@ -78,6 +81,7 @@ export const userSessionStorage = {
       
       if (result[0].rows.length > 0) {
         const row = result[0].rows.item(0);
+        const isGuest = row.user_id === GUEST_USER_ID;
         
         return {
           success: true,
@@ -85,7 +89,8 @@ export const userSessionStorage = {
             id: row.user_id,
             email: row.email,
             name: row.name,
-            accessToken: row.access_token
+            accessToken: row.access_token,
+            isGuest
           }
         };
       } else {
@@ -106,6 +111,17 @@ export const userSessionStorage = {
         error: errorMessage
       };
     }
+  },
+
+  isGuestSession: async (): Promise<boolean> => {
+    try {
+      const result = await userSessionStorage.get();
+      return result.success && result.data?.isGuest === true;
+    } catch (error) {
+      console.error('Error checking guest session:', error);
+      return false;
+    }
   }
+
 };
 

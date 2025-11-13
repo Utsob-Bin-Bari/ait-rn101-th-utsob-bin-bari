@@ -6,7 +6,7 @@ export const recoverDataService = {
   checkBackendDataExists: async (accessToken: string): Promise<boolean> => {
     try {
       const result = await fetchTasksRequest(accessToken);
-      return result.success && result.data && result.data.length > 0;
+      return !!(result.success && result.data && result.data.length > 0);
     } catch (error) {
       console.error('Error checking backend data:', error);
       return false;

@@ -12,11 +12,14 @@ import { RootState } from '../../application/store/initialState';
 import { useTasks } from '../hooks/useTasks';
 import SwipeableSimpleTaskCard from '../component/SwipeableSimpleTaskCard';
 import { Task } from '../../application/services/tasks/tasksSQLiteService';
+import GuestModeBadge from '../component/GuestModeBadge';
+import ConvertGuestPrompt from '../component/ConvertGuestPrompt';
 
 const HomeScreen = ({ navigation }: any) => {
   useFocusStatusBar(STATUS_BAR_CONFIGS.home);
   
   const user = useSelector((state: RootState) => state.auth.user);
+  const isGuest = useSelector((state: RootState) => state.auth.isGuest);
   const userName = user?.name || 'Guest';
   const allTasksFromStore = useSelector((state: RootState) => state.tasks.tasks);
 
@@ -52,13 +55,15 @@ const HomeScreen = ({ navigation }: any) => {
     <View style={commonStyles.container}>
       <Header
         leftText={userName}
-        RightIcon={ProfileIcon}
+        RightIcon={() => isGuest ? <GuestModeBadge /> : <ProfileIcon color={colors.blobBlue} size={24} onPress={handleProfilePress} />}
         onRightIconPress={handleProfilePress}
         color={colors.blobBlue}
         showBorder={true}
       />
       <ScrollView style={commonStyles.container} showsVerticalScrollIndicator={false}>
       
+      {isGuest && <ConvertGuestPrompt />}
+
       <View style={{ paddingHorizontal: 16, paddingTop:20, width: '110%', alignSelf: 'center' }}>
         <FilterButtons
           statusFilter={statusFilter}

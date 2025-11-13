@@ -2,6 +2,8 @@ import React, { useRef, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Animated } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../application/store/initialState';
 import { useSettings } from '../hooks/useSettings';
 import CustomButton from '../component/CustomButton';
 import commonStyles from '../styles/commonStyles';
@@ -10,6 +12,8 @@ import { useFocusStatusBar, STATUS_BAR_CONFIGS } from '../utils';
 import { useTasks } from '../hooks/useTasks';
 import { BinIcon, HardDriveIcon, SyncIcon, CheckIcon } from '../component/svgs';
 import Header from '../component/Header';
+import GuestModeBadge from '../component/GuestModeBadge';
+import ConvertGuestPrompt from '../component/ConvertGuestPrompt';
 
 type SettingsStackParamList = {
   SettingsMain: undefined;
@@ -29,6 +33,7 @@ const SettingScreen = () => {
   
   const navigation = useNavigation<NavigationProp>();
   const { syncStatus } = useTasks({ navigation });
+  const isGuest = useSelector((state: RootState) => state.auth.isGuest);
   
   const {
     loading,
@@ -141,8 +146,8 @@ const SettingScreen = () => {
     <View style={commonStyles.container}>
       <Header
         title="Settings"
-        RightIcon={() => <SyncStatus />}
-        onRightIconPress={handleSyncManagement}
+        RightIcon={() => isGuest ? <GuestModeBadge /> : <SyncStatus />}
+        onRightIconPress={isGuest ? undefined : handleSyncManagement}
         color={colors.blobBlue}
         showBorder={true}
         titleOffset={15}
@@ -155,6 +160,15 @@ const SettingScreen = () => {
         minHeight: '100%'
       }}>
         <View>
+          {isGuest && (
+            <ConvertGuestPrompt 
+              style={{
+                marginHorizontal: 0,
+                marginTop: 20,
+                marginBottom: 5,
+              }}
+            />
+          )}
 
           <TouchableOpacity 
             style={{
@@ -204,18 +218,19 @@ const SettingScreen = () => {
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={{
-              backgroundColor: colors.inputBackground,
-              borderRadius: 12,
-              padding: 20,
-              marginBottom: 5,
-              borderWidth: 1,
-              borderColor: colors.border,
-            }}
-            onPress={handleRecoverData}
-            disabled={recoverDataState === 'loading'}
-          >
+          {!isGuest && (
+            <TouchableOpacity 
+              style={{
+                backgroundColor: colors.inputBackground,
+                borderRadius: 12,
+                padding: 20,
+                marginBottom: 5,
+                borderWidth: 1,
+                borderColor: colors.border,
+              }}
+              onPress={handleRecoverData}
+              disabled={recoverDataState === 'loading'}
+            >
             <View style={{ 
               flexDirection: 'row', 
               alignItems: 'center', 
@@ -250,18 +265,20 @@ const SettingScreen = () => {
               It will recover data from server and overwrite your local storage. Any unsynced data will be lost forever.
             </Text>
           </TouchableOpacity>
+          )}
 
-          <TouchableOpacity 
-            style={{
-              backgroundColor: colors.inputBackground,
-              borderRadius: 12,
-              padding: 20,
-              marginBottom: 5,
-              borderWidth: 1,
-              borderColor: colors.border,
-            }}
-            onPress={handleSyncManagement}
-          >
+          {!isGuest && (
+            <TouchableOpacity 
+              style={{
+                backgroundColor: colors.inputBackground,
+                borderRadius: 12,
+                padding: 20,
+                marginBottom: 5,
+                borderWidth: 1,
+                borderColor: colors.border,
+              }}
+              onPress={handleSyncManagement}
+            >
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 5 }}>
               <SyncIcon color={colors.success} width={24} height={24} />
               <Text style={[
@@ -288,6 +305,7 @@ const SettingScreen = () => {
               You can manually sync data or delete sync operation from here.
             </Text>
           </TouchableOpacity>
+          )}
 
           {error ? (
             <Text style={{ 

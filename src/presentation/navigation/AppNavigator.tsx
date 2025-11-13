@@ -20,7 +20,18 @@ const AppNavigator = () => {
         const result = await checkExistingSession();
         
         if (result.success && result.data) {
-          dispatch(setUserInfo(result.data));
+          if (result.data.isGuest) {
+            const { setGuestInfo } = await import('../../application/store/action/auth/setGuestInfo');
+            dispatch(setGuestInfo({
+              id: result.data.id,
+              email: result.data.email,
+              name: result.data.name,
+              accessToken: result.data.accessToken,
+              isGuest: true,
+            }));
+          } else {
+            dispatch(setUserInfo(result.data));
+          }
           setInitialRoute('Main');
         } else {
           setInitialRoute('Auth');

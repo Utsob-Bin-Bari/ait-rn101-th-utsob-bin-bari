@@ -1,4 +1,5 @@
 import { DatabaseInit, DatabaseHelpers } from '../../../infrastructure/storage';
+import { userSessionStorage } from '../../../infrastructure/storage/userSessionStorage';
 
 export interface QueueOperation {
   id: number;
@@ -19,6 +20,11 @@ export const syncQueueService = {
     entityId: string,
     payload?: any
   ): Promise<number> => {
+    const isGuest = await userSessionStorage.isGuestSession();
+    if (isGuest) {
+      return -1;
+    }
+
     const db = DatabaseInit.getInstance().getDatabase();
     const timestamp = DatabaseHelpers.getCurrentTimestamp();
 

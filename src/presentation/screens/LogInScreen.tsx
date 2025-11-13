@@ -18,9 +18,11 @@ const LogInScreen = () => {
     password,
     setPassword,
     loading,
+    guestLoading,
     fieldErrors,
     loginError,
     handleLogin,
+    handleGuestLogin,
     navigateToSignup,
     showPassword,
     setShowPassword,
@@ -111,6 +113,36 @@ const LogInScreen = () => {
               <TouchableOpacity onPress={navigateToSignup}>
                 <Text style={{ fontSize: 14, color: colors.purple, fontWeight: '600' }}>Sign Up</Text>
               </TouchableOpacity>
+            </View>
+
+            <View style={{ marginTop: 20, alignItems: 'center' }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%', marginBottom: 20 }}>
+                <View style={{ flex: 1, height: 1, backgroundColor: colors.devider }} />
+                <Text style={{ marginHorizontal: 10, color: colors.blobBlue, fontSize: 14 }}>OR</Text>
+                <View style={{ flex: 1, height: 1, backgroundColor: colors.devider }} />
+              </View>
+
+              <TouchableOpacity
+                style={{
+                  width: '100%',
+                  paddingVertical: 14,
+                  borderRadius: 12,
+                  borderWidth: 1.5,
+                  borderColor: colors.purple,
+                  backgroundColor: colors.white,
+                  alignItems: 'center',
+                }}
+                onPress={handleGuestLogin}
+                disabled={guestLoading || loading}
+              >
+                <Text style={{ fontSize: 16, fontWeight: '600', color: colors.purple }}>
+                  {guestLoading ? 'Entering...' : 'Continue as Guest'}
+                </Text>
+              </TouchableOpacity>
+
+              <Text style={{ fontSize: 12, color: colors.blobBlue, marginTop: 8, textAlign: 'center', paddingHorizontal: 20 }}>
+                Guest mode: No sync, all data stays on your device
+              </Text>
             </View>
           </View>
         </ScrollView>

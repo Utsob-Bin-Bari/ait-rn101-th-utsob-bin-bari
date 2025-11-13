@@ -469,6 +469,29 @@ export const tasksSQLiteService = {
         });
       });
     });
+  },
+
+  updateTaskOwner: async (localId: string, newOwnerId: string): Promise<void> => {
+    return dbQueue.add(async () => {
+      const db = DatabaseInit.getInstance().getDatabase();
+
+      return new Promise((resolve, reject) => {
+        db.transaction(tx => {
+          tx.executeSql(
+            `UPDATE tasks SET owner_id = ?, needs_sync = 1 WHERE local_id = ?`,
+            [newOwnerId, localId],
+            () => {
+              resolve();
+            },
+            (_, error) => {
+              console.error('Error updating task owner:', error);
+              reject(error);
+              return false;
+            }
+          );
+        });
+      });
+    });
   }
 };
 

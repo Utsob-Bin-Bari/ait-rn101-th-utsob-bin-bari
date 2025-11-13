@@ -17,6 +17,11 @@ export const syncProcessor: SyncProcessor = {
 };
 
 export const startSyncProcessor = async (): Promise<void> => {
+  const isGuest = await userSessionStorage.isGuestSession();
+  if (isGuest) {
+    return;
+  }
+
   if (syncProcessor.isRunning) {
     return;
   }
@@ -44,6 +49,11 @@ export const stopSyncProcessor = async (): Promise<void> => {
 };
 
 const processQueueOnce = async (): Promise<void> => {
+  const isGuest = await userSessionStorage.isGuestSession();
+  if (isGuest) {
+    return;
+  }
+
   if (syncProcessor.processingCount > 0) {
     console.warn('Sync processor already running, skipping...');
     return;

@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import { validateLoginForm } from '../../domain/validators/loginValidator';
-import { loginUser, storeUserSession } from '../../application/services/auth';
+import { loginUser, storeUserSession, loginAsGuest, storeGuestSession } from '../../application/services/auth';
 import { setUserInfo } from '../../application/store/action/auth/setUserInfo';
+import { setGuestInfo } from '../../application/store/action/auth/setGuestInfo';
 
 export const useLogin = () => {
   const navigation = useNavigation<any>();
@@ -12,6 +13,7 @@ export const useLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [guestLoading, setGuestLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({
     email: [] as string[],
     password: [] as string[]
@@ -65,6 +67,32 @@ export const useLogin = () => {
     }
   };
 
+  const handleGuestLogin = async () => {
+    setGuestLoading(true);
+    setLoginError('');
+
+    try {
+      const result = await loginAsGuest();
+
+      if (result.success && result.data) {
+        dispatch(setGuestInfo(result.data));
+
+        await storeGuestSession(result.data);
+
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Main' }],
+        });
+      } else {
+        setLoginError(result.error || 'Failed to continue as guest.');
+      }
+    } catch (error) {
+      setLoginError('Something went wrong. Please try again.');
+    } finally {
+      setGuestLoading(false);
+    }
+  };
+
   const navigateToSignup = () => {
     navigation.navigate('SignUp');
   };
@@ -75,9 +103,11 @@ export const useLogin = () => {
     password,
     setPassword,
     loading,
+    guestLoading,
     fieldErrors,
     loginError,
     handleLogin,
+    handleGuestLogin,
     navigateToSignup,
     showPassword,
     setShowPassword,

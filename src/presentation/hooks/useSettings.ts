@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Alert } from 'react-native';
-import { logoutUser } from '../../application/services/auth';
+import { logoutUser, clearGuestData } from '../../application/services/auth';
 import { clearUserInfo } from '../../application/store/action/auth';
 import { setTasks } from '../../application/store/action/tasks';
 import { clearDataService, recoverDataService } from '../../application/services/settings';
@@ -176,9 +176,14 @@ export const useSettings = ({ navigation }: UseSettingsProps) => {
   };
 
   const handleLogout = async () => {
+    const isGuest = authState.isGuest;
+    const message = isGuest
+      ? 'Logging out will delete all your guest data. This action cannot be undone.'
+      : 'Are you sure you want to logout?';
+
     Alert.alert(
       'Logout',
-      'Are you sure you want to logout?',
+      message,
       [
         {
           text: 'Cancel',
@@ -190,10 +195,16 @@ export const useSettings = ({ navigation }: UseSettingsProps) => {
           onPress: async () => {
             setLoading(true);
             
-            const result = await logoutUser();
+            let result;
+            if (isGuest) {
+              result = await clearGuestData();
+            } else {
+              result = await logoutUser();
+            }
             
             if (result.success) {
               dispatch(clearUserInfo());
+              dispatch(setTasks([]));
               navigation.reset({
                 index: 0,
                 routes: [{ name: 'Auth' }],

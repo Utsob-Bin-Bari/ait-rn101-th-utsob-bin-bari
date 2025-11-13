@@ -3,6 +3,7 @@ import { TasksState, initialTasksState } from '../../domain/types/store/TasksSta
 
 export const initialAuthState: AuthState = {
   isAuthenticated: false,
+  isGuest: false,
   user: null,
   loading: false,
 };

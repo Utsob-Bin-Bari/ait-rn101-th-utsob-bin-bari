@@ -7,6 +7,7 @@ export const checkExistingSession = async (): Promise<{
     email: string;
     name: string;
     accessToken: string;
+    isGuest?: boolean;
   };
   error?: string;
 }> => {

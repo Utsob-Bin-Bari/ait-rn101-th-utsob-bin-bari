@@ -27,6 +27,17 @@ export const syncDebugService = {
   },
 
   logSyncStatus: async (): Promise<void> => {
+    const sessionResult = await userSessionStorage.get();
+    
+    if (!sessionResult.success || !sessionResult.data) {
+      return;
+    }
+    
+    const isGuest = sessionResult.data.isGuest === true;
+    if (isGuest) {
+      return;
+    }
+
     const status = await syncDebugService.getSyncStatus();
     console.warn(`Processor Running:    ${status.processorRunning ? '✓ YES' : '✗ NO'}`);
     console.warn(`Currently Processing: ${status.processorProcessing ? '✓ YES' : '✗ NO'}`);
