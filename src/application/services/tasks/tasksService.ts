@@ -4,6 +4,8 @@ import { userSessionStorage } from '../../../infrastructure/storage/userSessionS
 import { OPERATION_TYPES, ENTITY_TYPES, DatabaseHelpers } from '../../../infrastructure/storage/DatabaseSchema';
 import { CreateTaskPayload, UpdateTaskPayload } from '../../../domain/types/tasks/TaskType';
 import { NetworkService } from '../../../infrastructure/utils';
+import { notificationService } from '../notifications';
+import { requestNotificationPermission } from '../../../infrastructure/utils/notificationPermission';
 
 export const tasksService = {
   fetchTasks: async (): Promise<{ success: boolean; data?: Task[]; error?: string }> => {
@@ -57,6 +59,13 @@ export const tasksService = {
       );
 
       const task = await tasksSQLiteService.getTaskById(localId);
+
+      if (task) {
+        const hasPermission = await requestNotificationPermission();
+        if (hasPermission && task.due_date) {
+          await notificationService.scheduleTaskNotification(task);
+        }
+      }
       
       return { success: true, data: task || undefined };
     } catch (error: any) {
@@ -82,6 +91,18 @@ export const tasksService = {
         updates
       );
 
+      await notificationService.cancelTaskNotification(taskId);
+
+      if (updates.status !== 'completed') {
+        const updatedTask = await tasksSQLiteService.getTaskById(taskId);
+        if (updatedTask) {
+          const hasPermission = await requestNotificationPermission();
+          if (hasPermission && updatedTask.due_date) {
+            await notificationService.scheduleTaskNotification(updatedTask);
+          }
+        }
+      }
+
       return { success: true };
     } catch (error: any) {
       console.error('Error updating task:', error);
@@ -91,6 +112,8 @@ export const tasksService = {
 
   deleteTask: async (taskId: string): Promise<{ success: boolean; error?: string }> => {
     try {
+      await notificationService.cancelTaskNotification(taskId);
+
       const sessionResult = await userSessionStorage.get();
       if (!sessionResult.success || !sessionResult.data) {
         return { success: false, error: 'No active session' };

@@ -326,7 +326,8 @@ const styles = StyleSheet.create({
   statusButton: {
     flex: 1,
     paddingVertical: 12,
-    marginHorizontal: 4,
+    paddingHorizontal: 8,
+    marginHorizontal: 2,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: colors.devider,

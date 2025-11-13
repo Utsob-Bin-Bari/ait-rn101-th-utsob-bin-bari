@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useDispatch } from 'react-redux';
+import notifee, { EventType } from '@notifee/react-native';
 import AuthStackNavigator from './AuthStackNavigator';
 import TabNavigator from './TabNavigator';
 import { checkExistingSession } from '../../application/services/auth';
@@ -13,6 +14,7 @@ const AppNavigator = () => {
   const dispatch = useDispatch();
   const [initialRoute, setInitialRoute] = useState<string>('Auth');
   const [isReady, setIsReady] = useState(false);
+  const navigationRef = useRef<any>(null);
 
   useEffect(() => {
     const checkSession = async () => {
@@ -47,12 +49,47 @@ const AppNavigator = () => {
     checkSession();
   }, [dispatch]);
 
+  useEffect(() => {
+    const handleNotificationPress = (taskId: string) => {
+      if (navigationRef.current) {
+        navigationRef.current.navigate('Main', {
+          screen: 'Tasks',
+          params: {
+            screen: 'CreateTask',
+            params: { taskId },
+          },
+        });
+      }
+    };
+
+    const unsubscribeForeground = notifee.onForegroundEvent(({ type, detail }) => {
+      if (type === EventType.PRESS && detail.notification?.data?.taskId) {
+        handleNotificationPress(detail.notification.data.taskId as string);
+      }
+    });
+
+    const checkInitialNotification = async () => {
+      const initialNotification = await notifee.getInitialNotification();
+      if (initialNotification?.notification?.data?.taskId) {
+        setTimeout(() => {
+          handleNotificationPress(initialNotification.notification.data!.taskId as string);
+        }, 1000);
+      }
+    };
+
+    checkInitialNotification();
+
+    return () => {
+      unsubscribeForeground();
+    };
+  }, []);
+
   if (!isReady) {
     return null;
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <Stack.Navigator
         initialRouteName={initialRoute}
         screenOptions={{

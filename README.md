@@ -6,6 +6,8 @@ A professional React Native application built with TypeScript for tasks manageme
 ### Core Functionality
 - **Complete CRUD Operations** - Create, read, update, and delete tasks
 - **Offline-First Architecture** - Works seamlessly without internet connection
+- **Local Notifications** - Automatic reminders for task due dates (works offline)
+- **Deep Linking** - Tap notifications to open specific tasks directly
 - **Image Attachments** - Attach photos from camera or gallery to tasks
 - **Search & Filters** - Search tasks by title, filter by status
 - **Pagination** - Efficient loading for large task lists
@@ -201,59 +203,43 @@ If the backend supported collaborative task editing, the service would integrate
 
 This demonstrates production-ready architecture that can scale to multi-user collaborative features when backend support is added.
 
-### Local Notifications & Deep Linking: Skipped Due to Time
+### Local Notifications & Deep Linking
 
-**Why It Was Skipped:**
+**How It Works:**
 
-Due to project time constraints, local notifications for due tasks and deep linking navigation were not implemented. The core offline-first sync functionality, task management, and image handling took priority. However, the architecture supports easy integration of notification features.
+The app uses **@notifee/react-native** for local push notifications that work completely offline.
 
-**Implementation Strategy:**
+**Automatic Notifications:**
+- When you create a task with a due date, a notification is automatically scheduled
+- The notification triggers at the exact due date/time, even if the app is closed
+- No internet connection needed - works 100% offline
 
-**Task Scheduling:**
-- Tasks would have `due_date` and `due_time` fields stored in SQLite
-- When a task is created/updated with a due date, schedule a local notification
-- Notification triggers at the exact due date/time even if app is closed
+**Smart Notification Management:**
+- **Update task** → Old notification is cancelled, new one scheduled
+- **Complete task** → Notification is automatically cancelled
+- **Delete task** → Notification is automatically cancelled
 
-**Background Notification Handling:**
-- Use `react-native-push-notification` for cross-platform local notifications
-- Notifications persist in device's system notification tray
-- Work independently of app state (foreground/background/closed)
-- No internet required - purely local scheduling
-- System handles notification delivery using native APIs
+**Deep Linking:**
+- **Tap any notification** → App opens directly to that specific task
+- Works in all app states: foreground, background, or completely closed
+- Uses the custom URL scheme: `asthait://`
 
-**Deep Linking Strategy:**
-- Tapping notification opens app and navigates directly to specific task
-- Use custom URL scheme: `asthait://task/:taskId`
-- Notification payload includes `taskId` (server ID or local ID)
-- App intercepts URL, extracts taskId, navigates to TaskEditor screen
-- Handle both cold start (app closed) and warm start (app backgrounded)
-- React Navigation's linking configuration maps URL to screen params
+**Permissions:**
+- App requests notification permission on first launch
+- Works in both logged-in mode and guest mode
+- If permission is denied, app still works (just no notifications)
 
-**Notification Lifecycle:**
-- **Schedule** - When task created/updated with due_date
-- **Update** - When due_date changes, cancel old and schedule new
-- **Cancel** - When task deleted or marked complete
-- **Store** - Track scheduled notifications in SQLite for cleanup
+**What You Get:**
+- Notification shows task title: "📋 Task Due: Your Task Title"
+- Works even when app is closed or device is rebooted (Android)
+- High importance notifications (appear on lock screen)
+- Direct navigation to task when tapped
 
-**Platform-Specific Handling:**
-- **Android** - Notification channels for categorization
-- **iOS** - Permission requests, badge count management
-- **Both** - Handle timezone differences, respect Do Not Disturb settings
-
-**Integration Points:**
-- Notification service in application services layer
-- Schedule calls in tasksService (create/update)
-- Cancel calls in tasksService (delete/complete)
-- Deep link handler in AppNavigator
-- Permission requests on app first launch
-
-**Benefits:**
-- Timely reminders for due tasks
-- Direct navigation from notification tap
-- Works offline with local scheduling
-- Seamless user experience across app states
-
-**Estimated Implementation Time:** 4-6 hours with existing architecture
+**Quick Test:**
+1. Create a task with due date 2 minutes from now
+2. Close the app completely
+3. Wait for the notification
+4. Tap it → App opens to that task
 
 ## Prerequisites
 

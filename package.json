@@ -22,6 +22,7 @@
     "archive-ios": "cd ios && xcodebuild -workspace AsthaIt.xcworkspace -scheme AsthaIt -configuration Release archive -archivePath ./build/AsthaIt.xcarchive"
   },
   "dependencies": {
+    "@notifee/react-native": "^9.1.8",
     "@react-native-community/datetimepicker": "^8.5.0",
     "@react-native-community/netinfo": "^11.4.1",
     "@react-native-masked-view/masked-view": "^0.3.2",
