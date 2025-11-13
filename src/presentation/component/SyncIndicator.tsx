@@ -14,9 +14,9 @@ const SyncIndicator: React.FC<SyncIndicatorProps> = ({
   pendingCount
 }) => {
   const getStatusText = () => {
-    if (isSyncing) return '🔄 Syncing...';
-    if (!isOnline) return '📡 Offline';
-    if (pendingCount > 0) return `⏱ ${pendingCount} pending`;
+    if (isSyncing) return 'Syncing...';
+    if (!isOnline) return 'Offline';
+    if (pendingCount > 0) return `${pendingCount} pending`;
     return '✓ Synced';
   };
 

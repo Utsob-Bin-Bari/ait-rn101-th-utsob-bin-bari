@@ -85,7 +85,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onPress }) => {
 
         {task.sync_status === 'pending' && (
           <View style={styles.syncIndicator}>
-            <Text style={styles.syncText}>⏱ Pending sync</Text>
+            <Text style={styles.syncText}>Pending sync</Text>
           </View>
         )}
       </View>

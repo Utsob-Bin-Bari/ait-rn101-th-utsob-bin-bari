@@ -44,14 +44,13 @@ const TaskList: React.FC<TaskListProps> = ({
     if (error) {
       return (
         <View style={styles.emptyContainer}>
-          <Text style={styles.errorText}>⚠️ {error}</Text>
+          <Text style={styles.errorText}>{error}</Text>
         </View>
       );
     }
 
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>📝</Text>
         <Text style={styles.emptyMessage}>{emptyMessage}</Text>
       </View>
     );

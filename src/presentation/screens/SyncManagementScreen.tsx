@@ -86,14 +86,6 @@ const SyncManagementScreen = ({ navigation }: any) => {
     }
   };
 
-  const getOperationEmoji = (operationType: string): string => {
-    switch (operationType) {
-      case 'create': return '✨';
-      case 'update': return '📝';
-      case 'delete': return '🗑️';
-      default: return '📋';
-    }
-  };
 
   const formatDate = (dateString: string): string => {
     try {
@@ -107,7 +99,6 @@ const SyncManagementScreen = ({ navigation }: any) => {
   const renderOperationItem = (item: QueueOperation) => {
     const currentState = operationStates[item.id] || 'idle';
     const statusColor = getStatusColor(item.status);
-    const operationEmoji = getOperationEmoji(item.operation_type);
     
     return (
       <View key={item.id} style={{
@@ -122,7 +113,6 @@ const SyncManagementScreen = ({ navigation }: any) => {
       }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-            <Text style={{ fontSize: 18, marginRight: 8 }}>{operationEmoji}</Text>
             <Text style={[
               commonStyles.text,
               {
