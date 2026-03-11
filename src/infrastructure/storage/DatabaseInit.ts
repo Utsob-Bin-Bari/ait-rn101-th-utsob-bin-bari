@@ -19,7 +19,7 @@ export class DatabaseInit {
   public async initializeDatabase(): Promise<SQLiteDatabase> {
     try {
       this.db = await SQLite.openDatabase({
-        name: 'asthait.db',
+        name: 'taskbell.db',
         location: 'default',
       });
 

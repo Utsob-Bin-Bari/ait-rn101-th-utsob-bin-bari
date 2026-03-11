@@ -1,0 +1,77 @@
+# generated: 2026-03-11
+# project: TaskBell
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: _bmad-output/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Solo dev (Utsob) — one story in-progress at a time
+# - SM creates next story ONLY after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review before marking 'done'
+# - Epic transitions to 'in-progress' automatically when first story file is created
+
+generated: 2026-03-11
+project: TaskBell
+project_key: NOKEY
+tracking_system: file-system
+story_location: _bmad-output/implementation-artifacts
+
+development_status:
+
+  # ─── Epic 1: App Identity & Frictionless Launch ───────────────────────────
+  # FRs: FR1, FR2, FR3
+  # Goal: Users open a polished, branded app and land directly on task list — no login, no friction
+  epic-1: in-progress
+  1-1-app-icon-splash-screen: done
+  1-2-guest-only-launch-flow: backlog
+  epic-1-retrospective: optional
+
+  # ─── Epic 2: Task Planning Foundation ─────────────────────────────────────
+  # FRs: FR4, FR5, FR6, FR7, FR8, FR9, FR10
+  # Goal: Full CRUD, favourites, due-date awareness — all persisted locally
+  epic-2: backlog
+  2-1-create-task-with-title-due-date: backlog
+  2-2-task-list-with-overdue-indicators: backlog
+  2-3-edit-delete-task: backlog
+  2-4-favourite-tasks: backlog
+  epic-2-retrospective: optional
+
+  # ─── Epic 3: Alarm with Photo Accountability ──────────────────────────────
+  # FRs: FR11, FR12, FR13, FR14, FR15, FR16, FR17
+  # Goal: Timed alarms dismissible only by photo — pre-commitment made physical
+  epic-3: backlog
+  3-1-alarm-scheduling-on-task: backlog
+  3-2-notification-deep-link-to-dismiss-screen: backlog
+  3-3-photo-to-dismiss-alarm: backlog
+  epic-3-retrospective: optional
+
+  # ─── Epic 4: Reliable Background Alarms (Android OEM) ────────────────────
+  # FRs: FR18, FR19, FR20
+  # Goal: Users on aggressive Android OEM devices can trust alarms will fire
+  epic-4: backlog
+  4-1-android-battery-optimisation-exemption: backlog
+  4-2-oem-background-alarm-reliability: backlog
+  epic-4-retrospective: optional

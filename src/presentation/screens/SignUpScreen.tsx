@@ -47,7 +47,7 @@ const SignUpScreen = () => {
               Sign Up
             </Text>
             <Text style={{ fontSize: 16, color: colors.blobBlue, marginBottom: 30 }}>
-              Welcome to <Text style={{ color: colors.pink, fontWeight: '600' }}>AsthaIt</Text>! Please enter your details to create an account.
+              Welcome to <Text style={{ color: colors.pink, fontWeight: '600' }}>TaskBell</Text>! Please enter your details to create an account.
             </Text>
 
             <CustomTextInput

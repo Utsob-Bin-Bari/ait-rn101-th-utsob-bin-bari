@@ -1,5 +1,5 @@
 {
-  "name": "AsthaIt",
+  "name": "taskbell",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -10,16 +10,18 @@
     "sync-test": "jest __tests__/syncManagement.test.ts",
     "postinstall": "patch-package",
     "server": "json-server --watch db.json --port 3000 --host 0.0.0.0 --middlewares ./server-middleware.js",
-    "open": "open ios/AsthaIt.xcworkspace",
+    "open": "open ios/taskbell.xcworkspace",
     "clean-android": "cd android && ./gradlew clean && cd ..",
     "clean-ios": "cd ios && pod deintegrate && pod install && cd ..",
     "pod-start": "cd ios && bundle install && bundle exec pod install && cd ..",
     "pod-install": "cd ios && pod install && cd ..",
+    "android-release": "react-native run-android --mode=release",
+    "ios-release": "react-native run-ios --mode Release --device",
     "build-apk-debug": "yarn clean-android && cd android && ./gradlew assembleDebug && cd ..",
     "build-apk-release": "yarn clean-android && cd android && ./gradlew assembleRelease && cd ..",
     "build-ios-debug": "yarn clean-ios && react-native run-ios --configuration Debug",
     "build-ios-release": "yarn clean-ios && react-native run-ios --configuration Release",
-    "archive-ios": "cd ios && xcodebuild -workspace AsthaIt.xcworkspace -scheme AsthaIt -configuration Release archive -archivePath ./build/AsthaIt.xcarchive"
+    "archive-ios": "cd ios && xcodebuild -workspace taskbell.xcworkspace -scheme taskbell -configuration Release archive -archivePath ./build/taskbell.xcarchive"
   },
   "dependencies": {
     "@notifee/react-native": "^9.1.8",

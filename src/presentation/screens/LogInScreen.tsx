@@ -43,7 +43,7 @@ const LogInScreen = () => {
               Login
             </Text>
             <Text style={{ fontSize: 16, color: colors.blobBlue, marginBottom: 30 }}>
-              Welcome to <Text style={{ color: colors.pink, fontWeight: '600' }}>AsthaIt</Text>! Please enter your login details.
+              Welcome to <Text style={{ color: colors.pink, fontWeight: '600' }}>TaskBell</Text>! Please enter your login details.
             </Text>
 
             <CustomTextInput

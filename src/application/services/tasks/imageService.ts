@@ -11,7 +11,7 @@ export const imageService = {
           PermissionsAndroid.PERMISSIONS.CAMERA,
           {
             title: 'Camera Permission',
-            message: 'AsthaIt needs access to your camera to take photos',
+            message: 'TaskBell needs access to your camera to take photos',
             buttonNeutral: 'Ask Me Later',
             buttonNegative: 'Cancel',
             buttonPositive: 'OK',

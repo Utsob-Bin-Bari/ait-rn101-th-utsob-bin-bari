@@ -77,9 +77,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.asthait"
+    namespace "com.taskbell"
     defaultConfig {
-        applicationId "com.asthait"
+        applicationId "com.taskbell"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
@@ -93,11 +93,11 @@ android {
             keyPassword 'android'
         }
         release {
-            if (project.hasProperty('ASTHAIT_RELEASE_STORE_FILE')) {
-                storeFile file(ASTHAIT_RELEASE_STORE_FILE)
-                storePassword ASTHAIT_RELEASE_STORE_PASSWORD
-                keyAlias ASTHAIT_RELEASE_KEY_ALIAS
-                keyPassword ASTHAIT_RELEASE_KEY_PASSWORD
+            if (project.hasProperty('TASKBELL_RELEASE_STORE_FILE')) {
+                storeFile file(TASKBELL_RELEASE_STORE_FILE)
+                storePassword TASKBELL_RELEASE_STORE_PASSWORD
+                keyAlias TASKBELL_RELEASE_KEY_ALIAS
+                keyPassword TASKBELL_RELEASE_KEY_PASSWORD
             }
         }
     }
@@ -116,6 +116,7 @@ android {
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
+    implementation "androidx.core:core-splashscreen:1.0.1"
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")

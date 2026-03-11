@@ -1,4 +1,4 @@
-# AsthaIt - React Native Task Management App
+# TaskBell - React Native Task Management App
 A professional React Native application built with TypeScript for tasks management functionality with **offline-first capabilities**, SQLite database storage, json server, syncing and data recovery.
 
 ## Features
@@ -222,7 +222,7 @@ The app uses **@notifee/react-native** for local push notifications that work co
 **Deep Linking:**
 - **Tap any notification** → App opens directly to that specific task
 - Works in all app states: foreground, background, or completely closed
-- Uses the custom URL scheme: `asthait://`
+- Uses the custom URL scheme: `taskbell://`
 
 **Permissions:**
 - App requests notification permission on first launch
@@ -522,7 +522,7 @@ yarn build-ios-release
 ```bash
 yarn archive-ios
 ```
-Output: `ios/build/AsthaIt.xcarchive`
+Output: `ios/build/TaskBell.xcarchive`
 
 ## Demo & Downloads
 
