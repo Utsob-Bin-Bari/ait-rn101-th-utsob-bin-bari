@@ -28,6 +28,9 @@ type RootStackParamList = {
 type NavigationProp = StackNavigationProp<SettingsStackParamList> & 
   StackNavigationProp<RootStackParamList>;
 
+/** MVP 1: Guest-only — hide Logout and Create Account. Set false for MVP 2. */
+const MVP1_HIDE_AUTH_UI = true;
+
 const SettingScreen = () => {
   useFocusStatusBar(STATUS_BAR_CONFIGS.home);
   
@@ -160,7 +163,7 @@ const SettingScreen = () => {
         minHeight: '100%'
       }}>
         <View>
-          {isGuest && (
+          {isGuest && !MVP1_HIDE_AUTH_UI && (
             <ConvertGuestPrompt 
               style={{
                 marginHorizontal: 0,
@@ -319,14 +322,16 @@ const SettingScreen = () => {
           ) : null}
         </View>
 
-        <View style={{ marginTop: 20 }}>
-          <CustomButton
-            text={loading ? 'Logging out...' : 'Logout'}
-            onPress={handleLogout}
-            backgroundColor={colors.red}
-            disabled={loading}
-          />
-        </View>
+        {!MVP1_HIDE_AUTH_UI && (
+          <View style={{ marginTop: 20 }}>
+            <CustomButton
+              text={loading ? 'Logging out...' : 'Logout'}
+              onPress={handleLogout}
+              backgroundColor={colors.red}
+              disabled={loading}
+            />
+          </View>
+        )}
       </View>
       </ScrollView>
     </View>

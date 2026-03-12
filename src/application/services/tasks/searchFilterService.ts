@@ -137,6 +137,37 @@ export const searchFilterService = {
     });
 
     return sorted;
-  }
+  },
+
+  /** True if task has a due date in the past (before start of today). */
+  isOverdue: (task: Task): boolean => {
+    if (!task.due_date) return false;
+    const due = new Date(task.due_date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return due.getTime() < today.getTime();
+  },
+
+  /** Sort: overdue first, then by due_date ascending (soonest first), then no due_date last. */
+  sortTasksWithOverdueFirst: (tasks: Task[]): Task[] => {
+    const now = Date.now();
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayStartMs = todayStart.getTime();
+
+    return [...tasks].sort((a, b) => {
+      const aDue = a.due_date ? new Date(a.due_date).getTime() : null;
+      const bDue = b.due_date ? new Date(b.due_date).getTime() : null;
+      const aOverdue = aDue !== null && aDue < todayStartMs;
+      const bOverdue = bDue !== null && bDue < todayStartMs;
+      if (aOverdue && !bOverdue) return -1;
+      if (!aOverdue && bOverdue) return 1;
+      if (aOverdue && bOverdue) return (aDue ?? 0) - (bDue ?? 0);
+      if (aDue === null && bDue === null) return 0;
+      if (aDue === null) return 1;
+      if (bDue === null) return -1;
+      return aDue - bDue;
+    });
+  },
 };
 

@@ -32,7 +32,8 @@ const CreateTaskScreen = ({ navigation, route }: any) => {
     handleShowDatePicker,
     handleShowTimePicker,
     handleSave,
-    handleDelete
+    handleDelete,
+    deleting
   } = useTaskEditor({ navigation, taskId: route.params?.taskId });
 
   const showImagePicker = () => {
@@ -217,19 +218,26 @@ const CreateTaskScreen = ({ navigation, route }: any) => {
             </View>
 
             <View style={styles.buttonContainer}>
-              <CustomButton
-                text={isEditMode ? 'Update Task' : 'Create Task'}
-                onPress={handleSave}
-                loading={saving}
-              />
-
-              {isEditMode && (
+              <View style={styles.updateButtonWrapper}>
                 <CustomButton
-                  text="Delete Task"
-                  onPress={handleDelete}
+                  text={isEditMode ? 'Update Task' : 'Create Task'}
+                  onPress={handleSave}
                   loading={saving}
-                  style={styles.deleteButton}
+                  disabled={deleting}
+                  style={styles.buttonInRow}
                 />
+              </View>
+              {isEditMode && (
+                <View style={styles.deleteButtonWrapper}>
+                  <CustomButton
+                    text="Delete Task"
+                    onPress={handleDelete}
+                    loading={deleting}
+                    disabled={saving}
+                    backgroundColor={colors.red}
+                    style={styles.buttonInRow}
+                  />
+                </View>
               )}
             </View>
           </View>
@@ -385,11 +393,18 @@ const styles = StyleSheet.create({
     fontWeight: '600'
   },
   buttonContainer: {
+    flexDirection: 'row',
+    gap: 10,
     marginTop: 20
   },
-  deleteButton: {
-    backgroundColor: '#FF6B6B',
-    marginTop: 12
+  updateButtonWrapper: {
+    flex: 1
+  },
+  deleteButtonWrapper: {
+    flex: 1
+  },
+  buttonInRow: {
+    marginBottom: 0
   },
   dateTimeContainer: {
     marginBottom: 16

@@ -1,10 +1,10 @@
 import { CreateTaskPayload, UpdateTaskPayload } from '../../../domain/types/tasks/TaskType';
-import { validateTask } from '../../../domain/validators/taskValidator';
+import { validateTask, ValidateTaskOptions } from '../../../domain/validators/taskValidator';
 import { DatabaseHelpers } from '../../../infrastructure/storage/DatabaseSchema';
 
 export const taskEditorService = {
-  validateTask: (task: Partial<CreateTaskPayload>) => {
-    return validateTask(task);
+  validateTask: (task: Partial<CreateTaskPayload>, options?: ValidateTaskOptions) => {
+    return validateTask(task, options ?? {});
   },
 
   prepareTaskForSave: (task: Partial<CreateTaskPayload>, userId: string): CreateTaskPayload => {

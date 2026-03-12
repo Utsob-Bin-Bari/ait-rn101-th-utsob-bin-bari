@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { Task } from '../../application/services/tasks/tasksSQLiteService';
+import { searchFilterService } from '../../application/services/tasks/searchFilterService';
 import { colors } from '../constants/colors';
 
 interface SimpleTaskCardProps {
@@ -11,6 +12,8 @@ interface SimpleTaskCardProps {
 }
 
 const SimpleTaskCard: React.FC<SimpleTaskCardProps> = ({ task, onPress, onMenuPress }) => {
+  const isOverdue = searchFilterService.isOverdue(task);
+
   const getTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -88,7 +91,9 @@ const SimpleTaskCard: React.FC<SimpleTaskCardProps> = ({ task, onPress, onMenuPr
             <Text style={styles.moreText}>+{task.tags.length - 2}</Text>
           )}
           {task.due_date && (
-            <Text style={styles.dueDate}>{formatDate(task.due_date)}</Text>
+            <Text style={[styles.dueDate, isOverdue && styles.overdueDueDate]}>
+              {isOverdue ? 'Overdue · ' : ''}{formatDate(task.due_date)}
+            </Text>
           )}
         </View>
       </View>
@@ -180,6 +185,10 @@ const styles = StyleSheet.create({
     color: colors.blobBlue,
     fontWeight: '600',
     marginLeft: 2
+  },
+  overdueDueDate: {
+    color: colors.error,
+    fontWeight: '700'
   },
   moreText: {
     fontSize: 10,

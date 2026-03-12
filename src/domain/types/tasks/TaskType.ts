@@ -17,6 +17,11 @@ export interface Task {
   is_deleted: number;
   local_updated_at: string | null;
   needs_sync: number;
+  is_favourite?: number;
+  alarm_time?: string | null;
+  alarm_enabled?: number;
+  photo_dismiss_enabled?: number;
+  photo_dismiss_tolerance?: number;
 }
 
 export interface CreateTaskPayload {

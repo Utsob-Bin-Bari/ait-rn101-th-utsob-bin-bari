@@ -22,15 +22,15 @@ export const useTasks = ({ navigation }: any) => {
   const [displayedTasks, setDisplayedTasks] = useState<Task[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const filteredTasks = useMemo(() => 
-    searchFilterService.searchTasks(
+  const filteredTasks = useMemo(() => {
+    const filtered = searchFilterService.searchTasks(
       allTasks,
       searchQuery,
       statusFilter,
       selectedTags
-    ),
-    [allTasks, searchQuery, statusFilter, selectedTags]
-  );
+    );
+    return searchFilterService.sortTasksWithOverdueFirst(filtered);
+  }, [allTasks, searchQuery, statusFilter, selectedTags]);
 
   const taskCounts = useMemo(() => 
     searchFilterService.getTaskCounts(allTasks),

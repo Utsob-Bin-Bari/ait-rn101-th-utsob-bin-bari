@@ -1,6 +1,14 @@
 import { CreateTaskPayload } from '../types/tasks/TaskType';
 
-export const validateTask = (task: Partial<CreateTaskPayload>): {
+export type ValidateTaskOptions = {
+  /** When true (e.g. edit mode), past due dates are allowed. When false (create), due date must be in the future. */
+  allowPastDueDate?: boolean;
+};
+
+export const validateTask = (
+  task: Partial<CreateTaskPayload>,
+  options: ValidateTaskOptions = {}
+): {
   isValid: boolean;
   fieldErrors: {
     title: string[];
@@ -8,6 +16,7 @@ export const validateTask = (task: Partial<CreateTaskPayload>): {
     due_date: string[];
   };
 } => {
+  const { allowPastDueDate = false } = options;
   const fieldErrors = {
     title: [] as string[],
     description: [] as string[],
@@ -28,16 +37,17 @@ export const validateTask = (task: Partial<CreateTaskPayload>): {
 
   if (task.due_date) {
     const dueDate = new Date(task.due_date);
-    const now = new Date();
-    
     if (isNaN(dueDate.getTime())) {
       fieldErrors.due_date.push('Invalid date format');
-    } else if (dueDate < now) {
-      fieldErrors.due_date.push('Due date must be in the future');
+    } else if (!allowPastDueDate) {
+      const now = new Date();
+      if (dueDate < now) {
+        fieldErrors.due_date.push('Due date must be in the future');
+      }
     }
   }
 
-  const isValid = 
+  const isValid =
     fieldErrors.title.length === 0 &&
     fieldErrors.description.length === 0 &&
     fieldErrors.due_date.length === 0;

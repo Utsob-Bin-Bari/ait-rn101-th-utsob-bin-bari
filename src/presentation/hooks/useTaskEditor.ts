@@ -5,7 +5,7 @@ import { tasksService } from '../../application/services/tasks/tasksService';
 import { taskEditorService } from '../../application/services/tasks/taskEditorService';
 import { imageService } from '../../application/services/tasks/imageService';
 import { userSessionStorage } from '../../infrastructure/storage/userSessionStorage';
-import { addTask, updateTask as updateTaskAction } from '../../application/store/action/tasks';
+import { addTask, updateTask as updateTaskAction, removeTask } from '../../application/store/action/tasks';
 import { CreateTaskPayload } from '../../domain/types/tasks/TaskType';
 
 export const useTaskEditor = ({ navigation, taskId }: any) => {
@@ -24,6 +24,7 @@ export const useTaskEditor = ({ navigation, taskId }: any) => {
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
@@ -147,14 +148,24 @@ export const useTaskEditor = ({ navigation, taskId }: any) => {
   }, []);
 
   const validateTask = useCallback(() => {
-    const validation = taskEditorService.validateTask(task);
+    const isEdit = !!taskId;
+    const validation = taskEditorService.validateTask(task, { allowPastDueDate: isEdit });
     setErrors(validation.fieldErrors);
-    return validation.isValid;
-  }, [task]);
+    return validation;
+  }, [task, taskId]);
+
+  const getValidationErrorMessage = useCallback((fieldErrors: { title: string[]; description: string[]; due_date: string[] }) => {
+    const parts: string[] = [];
+    if (fieldErrors.title.length) parts.push(...fieldErrors.title);
+    if (fieldErrors.description.length) parts.push(...fieldErrors.description);
+    if (fieldErrors.due_date.length) parts.push(...fieldErrors.due_date);
+    return parts.length ? parts.join('\n') : 'Please fix the errors before saving';
+  }, []);
 
   const handleSave = useCallback(async () => {
-    if (!validateTask()) {
-      Alert.alert('Validation Error', 'Please fix the errors before saving');
+    const validation = validateTask();
+    if (!validation.isValid) {
+      Alert.alert('Validation Error', getValidationErrorMessage(validation.fieldErrors));
       return;
     }
 
@@ -196,7 +207,7 @@ export const useTaskEditor = ({ navigation, taskId }: any) => {
     } finally {
       setSaving(false);
     }
-  }, [task, taskId, validateTask, navigation, dispatch]);
+  }, [task, taskId, validateTask, getValidationErrorMessage, navigation, dispatch]);
 
   const handleDelete = useCallback(async () => {
     Alert.alert(
@@ -209,10 +220,11 @@ export const useTaskEditor = ({ navigation, taskId }: any) => {
           style: 'destructive',
           onPress: async () => {
             try {
-              setSaving(true);
+              setDeleting(true);
               const result = await tasksService.deleteTask(taskId);
               
               if (result.success) {
+                dispatch(removeTask(taskId));
                 navigation.goBack();
               } else {
                 Alert.alert('Error', result.error || 'Failed to delete task');
@@ -221,18 +233,19 @@ export const useTaskEditor = ({ navigation, taskId }: any) => {
               console.error('Error deleting task:', error);
               Alert.alert('Error', error.message || 'Failed to delete task');
             } finally {
-              setSaving(false);
+              setDeleting(false);
             }
           }
         }
       ]
     );
-  }, [taskId, navigation]);
+  }, [taskId, navigation, dispatch]);
 
   return {
     task,
     loading,
     saving,
+    deleting,
     imageUri,
     errors,
     isEditMode: !!taskId,

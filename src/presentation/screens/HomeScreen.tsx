@@ -15,6 +15,9 @@ import { Task } from '../../application/services/tasks/tasksSQLiteService';
 import GuestModeBadge from '../component/GuestModeBadge';
 import ConvertGuestPrompt from '../component/ConvertGuestPrompt';
 
+/** MVP 1: Guest-only — hide Create Account prompt. Set false for MVP 2. */
+const MVP1_HIDE_AUTH_UI = true;
+
 const HomeScreen = ({ navigation }: any) => {
   useFocusStatusBar(STATUS_BAR_CONFIGS.home);
   
@@ -62,7 +65,7 @@ const HomeScreen = ({ navigation }: any) => {
       />
       <ScrollView style={commonStyles.container} showsVerticalScrollIndicator={false}>
       
-      {isGuest && <ConvertGuestPrompt />}
+      {isGuest && !MVP1_HIDE_AUTH_UI && <ConvertGuestPrompt />}
 
       <View style={{ paddingHorizontal: 16, paddingTop:20, width: '110%', alignSelf: 'center' }}>
         <FilterButtons

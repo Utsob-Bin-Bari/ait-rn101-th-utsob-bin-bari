@@ -5,14 +5,15 @@ import { useDispatch } from 'react-redux';
 import notifee, { EventType } from '@notifee/react-native';
 import AuthStackNavigator from './AuthStackNavigator';
 import TabNavigator from './TabNavigator';
-import { checkExistingSession } from '../../application/services/auth';
+import { checkExistingSession, loginAsGuest, storeGuestSession } from '../../application/services/auth';
 import { setUserInfo } from '../../application/store/action/auth/setUserInfo';
+import { setGuestInfo } from '../../application/store/action/auth/setGuestInfo';
 
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
   const dispatch = useDispatch();
-  const [initialRoute, setInitialRoute] = useState<string>('Auth');
+  const [initialRoute, setInitialRoute] = useState<string>('Main');
   const [isReady, setIsReady] = useState(false);
   const navigationRef = useRef<any>(null);
 
@@ -20,10 +21,9 @@ const AppNavigator = () => {
     const checkSession = async () => {
       try {
         const result = await checkExistingSession();
-        
+
         if (result.success && result.data) {
           if (result.data.isGuest) {
-            const { setGuestInfo } = await import('../../application/store/action/auth/setGuestInfo');
             dispatch(setGuestInfo({
               id: result.data.id,
               email: result.data.email,
@@ -34,13 +34,18 @@ const AppNavigator = () => {
           } else {
             dispatch(setUserInfo(result.data));
           }
-          setInitialRoute('Main');
         } else {
-          setInitialRoute('Auth');
+          // MVP 1: No session — auto-create guest, no login prompt. Always route to Main.
+          const guestResult = await loginAsGuest();
+          if (guestResult.success && guestResult.data) {
+            await storeGuestSession(guestResult.data);
+            dispatch(setGuestInfo(guestResult.data));
+          }
         }
+        setInitialRoute('Main');
       } catch (error) {
         console.error('Session check error:', error);
-        setInitialRoute('Auth');
+        setInitialRoute('Main');
       } finally {
         setIsReady(true);
       }

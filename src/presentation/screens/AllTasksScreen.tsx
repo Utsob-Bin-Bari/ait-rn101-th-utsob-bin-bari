@@ -6,7 +6,7 @@ import { colors } from '../constants/colors';
 import BackButton from '../component/svgs/BackButton';
 import SearchButton from '../component/svgs/SearchButton';
 import WeekCalendar from '../component/WeekCalendar';
-import SimpleTaskCard from '../component/SimpleTaskCard';
+import SwipeableSimpleTaskCard from '../component/SwipeableSimpleTaskCard';
 import SearchBar from '../component/SearchBar';
 
 const AllTasksScreen = ({ navigation }: any) => {
@@ -19,7 +19,9 @@ const AllTasksScreen = ({ navigation }: any) => {
     searchQuery,
     handleSearch,
     handleCreateTask,
-    handleTaskPress
+    handleTaskPress,
+    handleCompleteTask,
+    handleDeleteTask
   } = useTasks({ navigation });
 
   const formatMonthYear = (date: Date) => {
@@ -109,10 +111,12 @@ const AllTasksScreen = ({ navigation }: any) => {
           </View>
         ) : (
           filteredTasks.map((task) => (
-            <SimpleTaskCard
-              key={task.id}
+            <SwipeableSimpleTaskCard
+              key={task.local_id}
               task={task}
               onPress={handleTaskPress}
+              onComplete={handleCompleteTask}
+              onDelete={handleDeleteTask}
             />
           ))
         )}

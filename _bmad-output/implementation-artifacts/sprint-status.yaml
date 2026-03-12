@@ -46,17 +46,17 @@ development_status:
   # Goal: Users open a polished, branded app and land directly on task list — no login, no friction
   epic-1: in-progress
   1-1-app-icon-splash-screen: done
-  1-2-guest-only-launch-flow: backlog
+  1-2-guest-only-launch-flow: done
   epic-1-retrospective: optional
 
   # ─── Epic 2: Task Planning Foundation ─────────────────────────────────────
   # FRs: FR4, FR5, FR6, FR7, FR8, FR9, FR10
   # Goal: Full CRUD, favourites, due-date awareness — all persisted locally
-  epic-2: backlog
-  2-1-create-task-with-title-due-date: backlog
-  2-2-task-list-with-overdue-indicators: backlog
-  2-3-edit-delete-task: backlog
-  2-4-favourite-tasks: backlog
+  epic-2: in-progress
+  2-1-create-task-with-title-due-date: done
+  2-2-task-list-with-overdue-indicators: done
+  2-3-edit-delete-task: done
+  2-4-favourite-tasks: in-progress
   epic-2-retrospective: optional
 
   # ─── Epic 3: Alarm with Photo Accountability ──────────────────────────────

@@ -1,5 +1,5 @@
 export const DATABASE_SCHEMA = {
-  VERSION: 1,
+  VERSION: 2,
   
   CREATE_TABLES: [
     
@@ -31,7 +31,12 @@ export const DATABASE_SCHEMA = {
       sync_status TEXT DEFAULT 'pending',
       is_deleted INTEGER DEFAULT 0,
       local_updated_at TEXT DEFAULT NULL,
-      needs_sync INTEGER DEFAULT 1
+      needs_sync INTEGER DEFAULT 1,
+      is_favourite INTEGER DEFAULT 0,
+      alarm_time TEXT DEFAULT NULL,
+      alarm_enabled INTEGER DEFAULT 0,
+      photo_dismiss_enabled INTEGER DEFAULT 0,
+      photo_dismiss_tolerance REAL DEFAULT 0.7
     )`,
 
     `CREATE TABLE IF NOT EXISTS sync_queue (
@@ -61,6 +66,8 @@ export const DATABASE_SCHEMA = {
     `CREATE INDEX IF NOT EXISTS idx_tasks_is_deleted ON tasks(is_deleted)`,
     `CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status)`,
     `CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks(due_date)`,
+    `CREATE INDEX IF NOT EXISTS idx_tasks_alarm_time ON tasks(alarm_time)`,
+    `CREATE INDEX IF NOT EXISTS idx_tasks_is_favourite ON tasks(is_favourite)`,
     `CREATE INDEX IF NOT EXISTS idx_sync_queue_status ON sync_queue(status)`,
     `CREATE INDEX IF NOT EXISTS idx_sync_queue_entity ON sync_queue(entity_type, entity_id)`
   ]

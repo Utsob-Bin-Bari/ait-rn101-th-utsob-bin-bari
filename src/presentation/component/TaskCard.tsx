@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { Task } from '../../application/services/tasks/tasksSQLiteService';
+import { searchFilterService } from '../../application/services/tasks/searchFilterService';
 import { colors } from '../constants/colors';
 
 interface TaskCardProps {
@@ -10,6 +11,8 @@ interface TaskCardProps {
 }
 
 const TaskCard: React.FC<TaskCardProps> = ({ task, onPress }) => {
+  const isOverdue = searchFilterService.isOverdue(task);
+
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Not set';
     const date = new Date(dateString);
@@ -90,12 +93,12 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onPress }) => {
 
           <View style={styles.footer}>
             <View style={styles.dateContainer}>
-              <Text style={styles.dateLabel}>Due Date</Text>
-              <Text style={styles.dateText}>{formatDate(task.due_date)}</Text>
+              <Text style={styles.dateLabel}>{isOverdue ? 'Overdue' : 'Due Date'}</Text>
+              <Text style={[styles.dateText, isOverdue && styles.overdueText]}>{formatDate(task.due_date)}</Text>
             </View>
             <View style={styles.dateContainer}>
               <Text style={styles.dateLabel}>Due Time</Text>
-              <Text style={styles.dateText}>{formatTime(task.due_date)}</Text>
+              <Text style={[styles.dateText, isOverdue && styles.overdueText]}>{formatTime(task.due_date)}</Text>
             </View>
             <View style={styles.priorityContainer}>
               <Text style={styles.priorityLabel}>Priority</Text>
@@ -238,6 +241,10 @@ const styles = StyleSheet.create({
   priorityText: {
     fontSize: 13,
     color: colors.white,
+    fontWeight: '700'
+  },
+  overdueText: {
+    color: colors.error,
     fontWeight: '700'
   },
   syncIndicator: {

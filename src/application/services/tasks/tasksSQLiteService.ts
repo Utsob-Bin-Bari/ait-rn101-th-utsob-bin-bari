@@ -20,6 +20,11 @@ interface LocalTask {
   is_deleted: number;
   local_updated_at: string | null;
   needs_sync: number;
+  is_favourite?: number;
+  alarm_time?: string | null;
+  alarm_enabled?: number;
+  photo_dismiss_enabled?: number;
+  photo_dismiss_tolerance?: number;
 }
 
 export type { Task };
@@ -83,7 +88,12 @@ const transformDbTaskToTask = (dbTask: LocalTask): Task => {
     sync_status: dbTask.sync_status as 'synced' | 'pending' | 'conflict',
     is_deleted: dbTask.is_deleted,
     local_updated_at: dbTask.local_updated_at,
-    needs_sync: dbTask.needs_sync
+    needs_sync: dbTask.needs_sync,
+    is_favourite: dbTask.is_favourite ?? 0,
+    alarm_time: dbTask.alarm_time ?? null,
+    alarm_enabled: dbTask.alarm_enabled ?? 0,
+    photo_dismiss_enabled: dbTask.photo_dismiss_enabled ?? 0,
+    photo_dismiss_tolerance: dbTask.photo_dismiss_tolerance ?? 0.7,
   };
 };
 

@@ -24,14 +24,60 @@ export class DatabaseInit {
       });
 
       await this.createTables();
-      await this.createIndexes();
       await this.setInitialSettings();
+      await this.runMigrations();
+      await this.createIndexes();
 
       return this.db;
     } catch (error) {
       console.error('Database initialization failed:', error);
       throw error;
     }
+  }
+
+  private async runMigrations(): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const version = await this.getDatabaseVersion();
+    if (version >= DATABASE_SCHEMA.VERSION) {
+      return;
+    }
+
+    if (version < 2) {
+      const alterStatements = [
+        'ALTER TABLE tasks ADD COLUMN is_favourite INTEGER DEFAULT 0',
+        'ALTER TABLE tasks ADD COLUMN alarm_time TEXT DEFAULT NULL',
+        'ALTER TABLE tasks ADD COLUMN alarm_enabled INTEGER DEFAULT 0',
+        'ALTER TABLE tasks ADD COLUMN photo_dismiss_enabled INTEGER DEFAULT 0',
+        'ALTER TABLE tasks ADD COLUMN photo_dismiss_tolerance REAL DEFAULT 0.7',
+      ];
+      for (const sql of alterStatements) {
+        await this.db.executeSql(sql);
+      }
+      await this.db.executeSql('CREATE INDEX IF NOT EXISTS idx_tasks_alarm_time ON tasks(alarm_time)');
+      await this.db.executeSql('CREATE INDEX IF NOT EXISTS idx_tasks_is_favourite ON tasks(is_favourite)');
+      await this.setDatabaseVersion(2);
+    }
+  }
+
+  private async getDatabaseVersion(): Promise<number> {
+    if (!this.db) return 0;
+    const [result] = await this.db.executeSql(
+      "SELECT value FROM app_settings WHERE key = 'database_version' LIMIT 1"
+    );
+    if (result.rows.length === 0) return 0;
+    const value = result.rows.item(0).value;
+    const v = parseInt(value, 10);
+    return isNaN(v) ? 0 : v;
+  }
+
+  private async setDatabaseVersion(version: number): Promise<void> {
+    if (!this.db) return;
+    const currentTimestamp = DatabaseHelpers.getCurrentTimestamp();
+    await this.db.executeSql(
+      `INSERT OR REPLACE INTO app_settings (key, value, updated_at) VALUES ('database_version', ?, ?)`,
+      [version.toString(), currentTimestamp]
+    );
   }
 
   public getDatabase(): SQLiteDatabase {
