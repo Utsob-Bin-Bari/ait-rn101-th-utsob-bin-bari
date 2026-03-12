@@ -22,6 +22,7 @@ export interface Task {
   alarm_enabled?: number;
   photo_dismiss_enabled?: number;
   photo_dismiss_tolerance?: number;
+  photo_dismiss_ref_path?: string | null;
 }
 
 export interface CreateTaskPayload {
@@ -33,6 +34,10 @@ export interface CreateTaskPayload {
   tags?: string[];
   image_path?: string | null;
   image_url?: string | null;
+  alarm_time?: string | null;
+  alarm_enabled?: number;
+  photo_dismiss_enabled?: number;
+  photo_dismiss_ref_path?: string | null;
 }
 
 export interface UpdateTaskPayload {
@@ -44,6 +49,11 @@ export interface UpdateTaskPayload {
   tags?: string[];
   image_path?: string | null;
   image_url?: string | null;
+  is_favourite?: number;
+  alarm_time?: string | null;
+  alarm_enabled?: number;
+  photo_dismiss_enabled?: number;
+  photo_dismiss_ref_path?: string | null;
 }
 
 export interface TaskFilters {

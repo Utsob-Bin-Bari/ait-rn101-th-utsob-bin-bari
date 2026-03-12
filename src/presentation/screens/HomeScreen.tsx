@@ -31,6 +31,7 @@ const HomeScreen = ({ navigation }: any) => {
     loading,
     error,
     statusFilter,
+    taskCounts,
     handleFilterStatus,
     handleTaskPressFromHome,
     handleCompleteTask,
@@ -71,6 +72,7 @@ const HomeScreen = ({ navigation }: any) => {
         <FilterButtons
           statusFilter={statusFilter}
           onStatusChange={handleFilterStatus}
+          counts={taskCounts}
         />
       </View>
 

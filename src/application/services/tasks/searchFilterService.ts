@@ -20,7 +20,13 @@ export const searchFilterService = {
     }
 
     if (statusFilter && statusFilter !== 'all') {
-      filtered = filtered.filter(task => task.status === statusFilter);
+      if (statusFilter === 'overdue') {
+        filtered = filtered.filter(task => searchFilterService.isOverdue(task));
+      } else if (statusFilter === 'favourite') {
+        filtered = filtered.filter(task => task.is_favourite === 1);
+      } else {
+        filtered = filtered.filter(task => task.status === statusFilter);
+      }
     }
 
     if (tagFilter.length > 0) {
@@ -96,12 +102,16 @@ export const searchFilterService = {
     pending: number;
     in_progress: number;
     completed: number;
+    overdue: number;
+    favourite: number;
   } => {
     return {
       all: tasks.length,
       pending: tasks.filter(t => t.status === 'pending').length,
       in_progress: tasks.filter(t => t.status === 'in_progress').length,
-      completed: tasks.filter(t => t.status === 'completed').length
+      completed: tasks.filter(t => t.status === 'completed').length,
+      overdue: tasks.filter(t => searchFilterService.isOverdue(t)).length,
+      favourite: tasks.filter(t => t.is_favourite === 1).length,
     };
   },
 
@@ -139,9 +149,10 @@ export const searchFilterService = {
     return sorted;
   },
 
-  /** True if task has a due date in the past (before start of today). */
+  /** True if task has a due date in the past (before start of today) and is not completed. */
   isOverdue: (task: Task): boolean => {
     if (!task.due_date) return false;
+    if (task.status === 'completed') return false;
     const due = new Date(task.due_date);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -158,8 +169,8 @@ export const searchFilterService = {
     return [...tasks].sort((a, b) => {
       const aDue = a.due_date ? new Date(a.due_date).getTime() : null;
       const bDue = b.due_date ? new Date(b.due_date).getTime() : null;
-      const aOverdue = aDue !== null && aDue < todayStartMs;
-      const bOverdue = bDue !== null && bDue < todayStartMs;
+      const aOverdue = aDue !== null && aDue < todayStartMs && a.status !== 'completed';
+      const bOverdue = bDue !== null && bDue < todayStartMs && b.status !== 'completed';
       if (aOverdue && !bOverdue) return -1;
       if (!aOverdue && bOverdue) return 1;
       if (aOverdue && bOverdue) return (aDue ?? 0) - (bDue ?? 0);

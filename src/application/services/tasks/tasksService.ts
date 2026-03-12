@@ -62,8 +62,13 @@ export const tasksService = {
 
       if (task) {
         const hasPermission = await requestNotificationPermission();
-        if (hasPermission && task.due_date) {
-          await notificationService.scheduleTaskNotification(task);
+        if (hasPermission) {
+          if (task.due_date) {
+            await notificationService.scheduleTaskNotification(task);
+          }
+          if (task.alarm_enabled === 1 && task.alarm_time) {
+            await notificationService.scheduleAlarmNotification(task);
+          }
         }
       }
       
@@ -92,13 +97,19 @@ export const tasksService = {
       );
 
       await notificationService.cancelTaskNotification(taskId);
+      await notificationService.cancelAlarmNotification(taskId);
 
       if (updates.status !== 'completed') {
         const updatedTask = await tasksSQLiteService.getTaskById(taskId);
         if (updatedTask) {
           const hasPermission = await requestNotificationPermission();
-          if (hasPermission && updatedTask.due_date) {
-            await notificationService.scheduleTaskNotification(updatedTask);
+          if (hasPermission) {
+            if (updatedTask.due_date) {
+              await notificationService.scheduleTaskNotification(updatedTask);
+            }
+            if (updatedTask.alarm_enabled === 1 && updatedTask.alarm_time) {
+              await notificationService.scheduleAlarmNotification(updatedTask);
+            }
           }
         }
       }
@@ -113,6 +124,7 @@ export const tasksService = {
   deleteTask: async (taskId: string): Promise<{ success: boolean; error?: string }> => {
     try {
       await notificationService.cancelTaskNotification(taskId);
+      await notificationService.cancelAlarmNotification(taskId);
 
       const sessionResult = await userSessionStorage.get();
       if (!sessionResult.success || !sessionResult.data) {
@@ -120,6 +132,18 @@ export const tasksService = {
       }
 
       const userId = sessionResult.data.id;
+
+      // Delete reference photo file if one is stored with this task
+      const taskToDelete = await tasksSQLiteService.getTaskById(taskId);
+      if (taskToDelete?.photo_dismiss_ref_path) {
+        try {
+          const { imageService } = await import('./imageService');
+          await imageService.deleteLocalImage(taskToDelete.photo_dismiss_ref_path);
+        } catch (imgError) {
+          console.warn('Failed to delete ref photo file:', imgError);
+        }
+      }
+
       await tasksSQLiteService.deleteTask(taskId, userId);
 
       await syncQueueService.addToQueue(

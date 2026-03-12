@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { Task } from '../../application/services/tasks/tasksSQLiteService';
 import { searchFilterService } from '../../application/services/tasks/searchFilterService';
+import StarIcon from './svgs/StarIcon';
 import { colors } from '../constants/colors';
 
 interface TaskCardProps {
@@ -12,6 +13,7 @@ interface TaskCardProps {
 
 const TaskCard: React.FC<TaskCardProps> = ({ task, onPress }) => {
   const isOverdue = searchFilterService.isOverdue(task);
+  const isFavourite = task.is_favourite === 1;
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Not set';
@@ -63,9 +65,14 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onPress }) => {
         
         <View style={styles.content}>
           <View style={styles.header}>
-            <Text style={styles.title} numberOfLines={2}>
-              {task.title}
-            </Text>
+            <View style={styles.titleRow}>
+              <Text style={styles.title} numberOfLines={2}>
+                {task.title}
+              </Text>
+              {isFavourite && (
+                <StarIcon width={18} height={18} color={colors.warning} filled />
+              )}
+            </View>
             <View style={styles.badgeRow}>
               <View style={styles.statusBadge}>
                 <Text style={styles.statusText}>
@@ -153,10 +160,17 @@ const styles = StyleSheet.create({
     padding: 20,
     justifyContent: 'space-between'
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 6
+  },
   header: {
     marginBottom: 12
   },
   title: {
+    flex: 1,
     fontSize: 22,
     fontWeight: '700',
     color: colors.white,

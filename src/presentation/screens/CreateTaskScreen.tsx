@@ -1,10 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, Platform, Switch, ActionSheetIOS } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTaskEditor } from '../hooks/useTaskEditor';
 import Header from '../component/Header';
 import BackButton from '../component/svgs/BackButton';
+import StarIcon from '../component/svgs/StarIcon';
 import CustomTextInput from '../component/CustomTextInput';
 import CustomButton from '../component/CustomButton';
 import { colors } from '../constants/colors';
@@ -20,6 +21,9 @@ const CreateTaskScreen = ({ navigation, route }: any) => {
     imageUri,
     errors,
     isEditMode,
+    isFavourite,
+    alarmEnabled,
+    refPhotoUri,
     showDatePicker,
     showTimePicker,
     selectedDate,
@@ -27,12 +31,16 @@ const CreateTaskScreen = ({ navigation, route }: any) => {
     handleTagsChange,
     handleImagePick,
     handleImageRemove,
+    handleRefPhotoPick,
+    handleRefPhotoRemove,
     handleDateChange,
     handleTimeChange,
     handleShowDatePicker,
     handleShowTimePicker,
+    handleToggleAlarm,
     handleSave,
     handleDelete,
+    handleToggleFavourite,
     deleting
   } = useTaskEditor({ navigation, taskId: route.params?.taskId });
 
@@ -41,20 +49,36 @@ const CreateTaskScreen = ({ navigation, route }: any) => {
       'Select Image',
       'Choose an option',
       [
-        {
-          text: 'Camera',
-          onPress: () => handleImagePick('camera')
-        },
-        {
-          text: 'Gallery',
-          onPress: () => handleImagePick('gallery')
-        },
-        {
-          text: 'Cancel',
-          style: 'cancel'
-        }
+        { text: 'Camera', onPress: () => handleImagePick('camera') },
+        { text: 'Gallery', onPress: () => handleImagePick('gallery') },
+        { text: 'Cancel', style: 'cancel' }
       ]
     );
+  };
+
+  const showRefPhotoPicker = () => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['Cancel', 'Camera', 'Gallery'],
+          cancelButtonIndex: 0,
+        },
+        (buttonIndex) => {
+          if (buttonIndex === 1) handleRefPhotoPick('camera');
+          if (buttonIndex === 2) handleRefPhotoPick('gallery');
+        }
+      );
+    } else {
+      Alert.alert(
+        'Set Reference Photo',
+        'Choose an option',
+        [
+          { text: 'Camera', onPress: () => handleRefPhotoPick('camera') },
+          { text: 'Gallery', onPress: () => handleRefPhotoPick('gallery') },
+          { text: 'Cancel', style: 'cancel' }
+        ]
+      );
+    }
   };
 
   const formatDisplayDate = (dateString: string | null) => {
@@ -76,6 +100,7 @@ const CreateTaskScreen = ({ navigation, route }: any) => {
       hour12: true
     });
   };
+
 
   if (loading) {
     return (
@@ -102,6 +127,20 @@ const CreateTaskScreen = ({ navigation, route }: any) => {
           onLeftIconPress={() => navigation.navigate('Tasks',{ screen: 'AllTasks' })} 
           color={colors.white}
         />
+        {isEditMode && (
+          <TouchableOpacity
+            style={styles.starButton}
+            onPress={handleToggleFavourite}
+            activeOpacity={0.7}
+          >
+            <StarIcon
+              width={24}
+              height={24}
+              color={colors.white}
+              filled={isFavourite}
+            />
+          </TouchableOpacity>
+        )}
       </LinearGradient>
 
       <View style={styles.solidSection}>
@@ -217,6 +256,77 @@ const CreateTaskScreen = ({ navigation, route }: any) => {
               )}
             </View>
 
+            {/* ─── Alarm Section ─────────────────────────────────── */}
+            <View style={styles.alarmContainer}>
+              <Text style={styles.label}>Alarm</Text>
+
+              <View style={styles.alarmCard}>
+                <View style={styles.alarmRow}>
+                  <View style={styles.alarmRowLabelGroup}>
+                    <Text style={styles.alarmRowLabel}>Enable Alarm</Text>
+                    <Text style={styles.alarmRowHint}>Fires at the due date & time</Text>
+                  </View>
+                  <Switch
+                    value={alarmEnabled}
+                    onValueChange={handleToggleAlarm}
+                    trackColor={{ false: colors.lightGrey, true: colors.purple }}
+                    thumbColor={colors.white}
+                  />
+                </View>
+
+                {alarmEnabled && (
+                  <>
+                    <View style={styles.alarmDivider} />
+                    <View style={styles.alarmRow}>
+                      <Text style={styles.alarmRowLabel}>📷  Photo required to dismiss</Text>
+                    </View>
+
+                    <View style={styles.alarmDivider} />
+                    <View style={styles.refPhotoSection}>
+                      <Text style={styles.refPhotoLabel}>Reference Photo</Text>
+                      <Text style={styles.refPhotoHint}>
+                        This photo will be matched when you dismiss the alarm
+                      </Text>
+
+                      {refPhotoUri ? (
+                        <View style={styles.refPhotoPreview}>
+                          <TouchableOpacity
+                            onPress={showRefPhotoPicker}
+                            activeOpacity={0.8}
+                            style={styles.refPhotoImageTouch}
+                          >
+                            <Image
+                              source={{ uri: refPhotoUri }}
+                              style={styles.refPhotoThumbnail}
+                            />
+                            <View style={styles.refPhotoOverlay}>
+                              <Text style={styles.refPhotoOverlayText}>Tap to replace</Text>
+                            </View>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={styles.refPhotoRemoveBtn}
+                            onPress={handleRefPhotoRemove}
+                          >
+                            <Text style={styles.refPhotoRemoveBtnText}>Remove</Text>
+                          </TouchableOpacity>
+                        </View>
+                      ) : (
+                        <TouchableOpacity
+                          style={styles.refPhotoPlaceholder}
+                          onPress={showRefPhotoPicker}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={styles.refPhotoPlaceholderIcon}>📸</Text>
+                          <Text style={styles.refPhotoPlaceholderText}>Set Reference Photo</Text>
+                          <Text style={styles.refPhotoPlaceholderHint}>Required to save with alarm</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  </>
+                )}
+              </View>
+            </View>
+
             <View style={styles.buttonContainer}>
               <View style={styles.updateButtonWrapper}>
                 <CustomButton
@@ -261,6 +371,7 @@ const CreateTaskScreen = ({ navigation, route }: any) => {
             onChange={handleTimeChange}
           />
         )}
+
       </View>
     </View>
   );
@@ -432,7 +543,128 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.blobBlue,
     fontWeight: '600'
-  }
+  },
+  starButton: {
+    position: 'absolute',
+    right: '5%',
+    bottom: 14,
+    padding: 6,
+    zIndex: 20
+  },
+  alarmContainer: {
+    marginBottom: 16,
+  },
+  alarmCard: {
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: 'hidden',
+  },
+  alarmRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  alarmRowLabel: {
+    fontSize: 15,
+    color: colors.blobBlue,
+    fontWeight: '500',
+  },
+  alarmRowLabelGroup: {
+    flex: 1,
+    marginRight: 12,
+  },
+  alarmRowHint: {
+    fontSize: 12,
+    color: colors.darkGrey,
+    marginTop: 2,
+  },
+  alarmDivider: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginHorizontal: 16,
+  },
+  refPhotoSection: {
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  refPhotoLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.blobBlue,
+    marginBottom: 2,
+  },
+  refPhotoHint: {
+    fontSize: 12,
+    color: colors.darkGrey,
+    marginBottom: 12,
+  },
+  refPhotoPreview: {
+    width: '100%',
+    alignItems: 'center',
+  },
+  refPhotoImageTouch: {
+    width: '100%',
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  refPhotoThumbnail: {
+    width: '100%',
+    height: 160,
+    borderRadius: 10,
+  },
+  refPhotoOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    paddingVertical: 6,
+    alignItems: 'center',
+  },
+  refPhotoOverlayText: {
+    color: colors.white,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  refPhotoRemoveBtn: {
+    marginTop: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 7,
+    borderRadius: 8,
+    backgroundColor: '#FF6B6B',
+  },
+  refPhotoRemoveBtnText: {
+    color: colors.white,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  refPhotoPlaceholder: {
+    borderWidth: 2,
+    borderColor: colors.purple,
+    borderStyle: 'dashed',
+    borderRadius: 12,
+    paddingVertical: 24,
+    alignItems: 'center',
+    backgroundColor: 'rgba(108,99,255,0.04)',
+  },
+  refPhotoPlaceholderIcon: {
+    fontSize: 28,
+    marginBottom: 6,
+  },
+  refPhotoPlaceholderText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.purple,
+    marginBottom: 3,
+  },
+  refPhotoPlaceholderHint: {
+    fontSize: 11,
+    color: colors.darkGrey,
+  },
 });
 
 export default CreateTaskScreen;

@@ -297,36 +297,112 @@ So that **I can act on the alarm immediately from the notification**.
 
 ---
 
-### Story 3.3: Photo-to-Dismiss Alarm
+### Story 3.3: Looping Alarm Sound
 
 As a **user**,
-I want **to dismiss an alarm only by taking a photo**,
-So that **I'm forced to physically prove I'm doing the task before the alarm stops**.
+I want **the alarm to play a loud, looping sound when the dismiss screen opens**,
+So that **the alarm is impossible to ignore until I actively dismiss it**.
+
+**Acceptance Criteria:**
+
+**Given** the alarm fires and the user opens the AlarmDismissScreen (via notification tap or foreground event)
+**When** the screen mounts
+**Then** a looping alarm tone starts playing immediately via `alarmAudioService`
+**And** the sound loops continuously — it does not stop after one play
+
+**Given** the alarm sound is looping on the AlarmDismissScreen
+**When** the user successfully dismisses the alarm (via button or valid photo)
+**Then** the sound stops immediately before navigating away
+
+**Given** the alarm sound is looping on the AlarmDismissScreen
+**When** the user taps Snooze (go back)
+**Then** the sound stops before navigating away
+**And** the alarm notification is NOT cancelled (still pending)
+
+**Given** the app is in the foreground and the alarm time arrives
+**When** `onForegroundEvent` navigates to `AlarmDismissScreen`
+**Then** the looping sound starts on screen mount (same behaviour as notification tap)
+
+**Given** the device is on silent/vibrate mode
+**When** the alarm fires
+**Then** the sound respects system volume — it does not bypass silent mode in MVP 1
+
+---
+
+### Story 3.4: Reference Photo Capture on Task
+
+As a **user**,
+I want **to attach a reference photo to a task when enabling photo-dismiss**,
+So that **the app knows what photo I need to take to prove I completed the task**.
+
+**Acceptance Criteria:**
+
+**Given** the user enables the Photo Dismiss toggle on a task
+**When** the toggle is turned on
+**Then** a "Set Reference Photo" section appears in the task form
+**And** the user can tap it to open the camera or gallery via `react-native-image-picker`
+
+**Given** the user captures or picks a reference photo
+**When** the photo is confirmed
+**Then** the image is saved to the local filesystem via `imageStorageService`
+**And** the file path (`photo_dismiss_ref_path`) is stored with the task in SQLite (DB migration v3)
+**And** a thumbnail preview of the reference photo is shown in the task form
+
+**Given** the user edits a task that already has a reference photo
+**When** the edit screen opens
+**Then** the existing reference photo thumbnail is shown
+**And** the user can replace it by tapping the thumbnail
+
+**Given** the user saves a task with photo-dismiss enabled but no reference photo set
+**When** they tap Save
+**Then** a validation warning is shown: "Please set a reference photo to use photo dismiss"
+**And** the task is not saved until a reference photo is provided
+
+**Given** the user deletes a task with a reference photo
+**When** deletion is confirmed
+**Then** the stored reference photo file is also deleted from the filesystem via `imageStorageService`
+
+**Given** a task is saved with photo-dismiss enabled
+**When** the task is created or updated
+**Then** `photo_dismiss_tolerance` is stored as `0.7` by default — no UI control in MVP 1
+
+---
+
+### Story 3.5: Photo Comparison & Dismiss Enforcement
+
+As a **user**,
+I want **to dismiss the alarm only by taking a photo that matches my reference photo**,
+So that **I'm forced to physically prove I am at the right place before the alarm stops**.
 
 **Acceptance Criteria:**
 
 **Given** a task has photo-dismiss enabled and the alarm has fired
-**When** the user arrives at the alarm dismiss screen
-**Then** the camera is activated and a "Take photo to dismiss" instruction is shown
-**And** there is no simple "dismiss" or "snooze" tap button available
+**When** the user arrives at the AlarmDismissScreen
+**Then** the "Take Photo to Dismiss" button opens the device camera via `react-native-image-picker`
+**And** there is no direct dismiss button — snooze only
 
 **Given** the user takes a photo on the dismiss screen
 **When** the photo is captured
-**Then** the photo is validated with configurable error tolerance (not pixel-perfect)
-**And** if validation passes, the alarm is dismissed and the task is marked complete
+**Then** `photoComparisonService` compares the live photo against the stored reference photo using perceptual hashing (pHash)
+**And** if the similarity score ≥ `photo_dismiss_tolerance` (default 0.7), the alarm is dismissed and the screen closes
+**And** if the score is below tolerance, the user sees a "Photo doesn't match — try again" message and can retake
 
-**Given** the photo validation fails (e.g., blurry or wrong subject)
+**Given** the photo comparison passes
+**When** the alarm is dismissed
+**Then** `cancelAlarmNotification` is called, the looping sound stops, and the app navigates back
+
+**Given** the photo comparison fails
 **When** the result is returned
-**Then** the user is shown feedback and prompted to retake the photo
-**And** the alarm continues until a valid photo is submitted
+**Then** the looping sound continues, the camera can be opened again immediately
+**And** the dismiss screen remains open — the user cannot exit without snoozeing or a passing photo
 
-**Given** the user enables photo-dismiss on a task
-**When** toggling it on in the task creation/edit screen
-**Then** the option is saved with the task and the dismiss screen will enforce photo capture at alarm time
+**Given** the task has no reference photo stored (e.g., migrated task)
+**When** the alarm fires
+**Then** the alarm dismiss screen falls back to a simple dismiss button (no photo comparison) with a warning badge: "No reference photo set"
 
-**Given** a task is saved with photo-dismiss enabled
-**When** the task is created or updated
-**Then** `photo_dismiss_tolerance` is stored as `0.7` by default — no UI control is provided in MVP 1 (user-configurable post-MVP 1)
+**Given** a task is saved with photo-dismiss disabled
+**When** the alarm fires
+**Then** the AlarmDismissScreen shows a standard dismiss button — no camera interaction required
 
 ---
 

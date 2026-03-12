@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { Task } from '../../application/services/tasks/tasksSQLiteService';
 import { searchFilterService } from '../../application/services/tasks/searchFilterService';
+import StarIcon from './svgs/StarIcon';
 import { colors } from '../constants/colors';
 
 interface SimpleTaskCardProps {
@@ -13,6 +14,7 @@ interface SimpleTaskCardProps {
 
 const SimpleTaskCard: React.FC<SimpleTaskCardProps> = ({ task, onPress, onMenuPress }) => {
   const isOverdue = searchFilterService.isOverdue(task);
+  const isFavourite = task.is_favourite === 1;
 
   const getTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
@@ -70,9 +72,14 @@ const SimpleTaskCard: React.FC<SimpleTaskCardProps> = ({ task, onPress, onMenuPr
           <Text style={styles.title} numberOfLines={1}>
             {task.title}
           </Text>
-          <Text style={styles.timeAgo}>
-          {getTimeAgo(task.updated_at || task.created_at)}
-        </Text>
+          <View style={styles.titleRight}>
+            {isFavourite && (
+              <StarIcon width={14} height={14} color={colors.warning} filled />
+            )}
+            <Text style={styles.timeAgo}>
+              {getTimeAgo(task.updated_at || task.created_at)}
+            </Text>
+          </View>
         </View>
         
         <View style={styles.detailsRow}>
@@ -138,6 +145,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center'
+  },
+  titleRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4
   },
   title: {
     fontSize: 16,

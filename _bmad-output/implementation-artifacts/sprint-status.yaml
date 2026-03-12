@@ -56,16 +56,18 @@ development_status:
   2-1-create-task-with-title-due-date: done
   2-2-task-list-with-overdue-indicators: done
   2-3-edit-delete-task: done
-  2-4-favourite-tasks: in-progress
+  2-4-favourite-tasks: done
   epic-2-retrospective: optional
 
   # ─── Epic 3: Alarm with Photo Accountability ──────────────────────────────
   # FRs: FR11, FR12, FR13, FR14, FR15, FR16, FR17
   # Goal: Timed alarms dismissible only by photo — pre-commitment made physical
-  epic-3: backlog
-  3-1-alarm-scheduling-on-task: backlog
-  3-2-notification-deep-link-to-dismiss-screen: backlog
-  3-3-photo-to-dismiss-alarm: backlog
+  epic-3: in-progress
+  3-1-alarm-scheduling-on-task: done
+  3-2-notification-deep-link-to-dismiss-screen: done
+  3-3-looping-alarm-sound: done
+  3-4-reference-photo-capture-on-task: done
+  3-5-photo-comparison-dismiss-enforcement: done
   epic-3-retrospective: optional
 
   # ─── Epic 4: Reliable Background Alarms (Android OEM) ────────────────────

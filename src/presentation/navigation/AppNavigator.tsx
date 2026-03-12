@@ -5,6 +5,7 @@ import { useDispatch } from 'react-redux';
 import notifee, { EventType } from '@notifee/react-native';
 import AuthStackNavigator from './AuthStackNavigator';
 import TabNavigator from './TabNavigator';
+import AlarmDismissScreen from '../screens/AlarmDismissScreen';
 import { checkExistingSession, loginAsGuest, storeGuestSession } from '../../application/services/auth';
 import { setUserInfo } from '../../application/store/action/auth/setUserInfo';
 import { setGuestInfo } from '../../application/store/action/auth/setGuestInfo';
@@ -55,8 +56,13 @@ const AppNavigator = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    const handleNotificationPress = (taskId: string) => {
-      if (navigationRef.current) {
+    const handleNotificationPress = (taskId: string, screen?: string) => {
+      if (!navigationRef.current) return;
+
+      if (screen === 'AlarmDismiss') {
+        navigationRef.current.navigate('AlarmDismiss', { taskId });
+      } else {
+        // Default: due-date reminder → open task editor
         navigationRef.current.navigate('Main', {
           screen: 'Tasks',
           params: {
@@ -69,7 +75,10 @@ const AppNavigator = () => {
 
     const unsubscribeForeground = notifee.onForegroundEvent(({ type, detail }) => {
       if (type === EventType.PRESS && detail.notification?.data?.taskId) {
-        handleNotificationPress(detail.notification.data.taskId as string);
+        handleNotificationPress(
+          detail.notification.data.taskId as string,
+          detail.notification.data.screen as string | undefined
+        );
       }
     });
 
@@ -77,7 +86,10 @@ const AppNavigator = () => {
       const initialNotification = await notifee.getInitialNotification();
       if (initialNotification?.notification?.data?.taskId) {
         setTimeout(() => {
-          handleNotificationPress(initialNotification.notification.data!.taskId as string);
+          handleNotificationPress(
+            initialNotification.notification.data!.taskId as string,
+            initialNotification.notification.data!.screen as string | undefined
+          );
         }, 1000);
       }
     };
@@ -103,6 +115,11 @@ const AppNavigator = () => {
       >
         <Stack.Screen name="Auth" component={AuthStackNavigator} />
         <Stack.Screen name="Main" component={TabNavigator} />
+        <Stack.Screen
+          name="AlarmDismiss"
+          component={AlarmDismissScreen}
+          options={{ presentation: 'modal' }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

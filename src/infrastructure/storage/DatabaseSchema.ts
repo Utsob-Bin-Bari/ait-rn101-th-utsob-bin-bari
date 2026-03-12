@@ -1,5 +1,5 @@
 export const DATABASE_SCHEMA = {
-  VERSION: 2,
+  VERSION: 3,
   
   CREATE_TABLES: [
     
@@ -36,7 +36,8 @@ export const DATABASE_SCHEMA = {
       alarm_time TEXT DEFAULT NULL,
       alarm_enabled INTEGER DEFAULT 0,
       photo_dismiss_enabled INTEGER DEFAULT 0,
-      photo_dismiss_tolerance REAL DEFAULT 0.7
+      photo_dismiss_tolerance REAL DEFAULT 0.7,
+      photo_dismiss_ref_path TEXT DEFAULT NULL
     )`,
 
     `CREATE TABLE IF NOT EXISTS sync_queue (

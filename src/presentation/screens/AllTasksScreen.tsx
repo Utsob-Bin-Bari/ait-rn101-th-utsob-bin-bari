@@ -36,9 +36,8 @@ const AllTasksScreen = ({ navigation }: any) => {
     setFilterByDate(true);
   };
 
-  const getFilteredTasks = () => {
+  const filteredTasks = (() => {
     if (!filterByDate) return tasks;
-    
     return tasks.filter(task => {
       if (!task.due_date) return false;
       const taskDate = new Date(task.due_date);
@@ -46,9 +45,7 @@ const AllTasksScreen = ({ navigation }: any) => {
              taskDate.getMonth() === selectedDate.getMonth() &&
              taskDate.getFullYear() === selectedDate.getFullYear();
     });
-  };
-
-  const filteredTasks = getFilteredTasks();
+  })();
 
   return (
     <View style={styles.container}>
@@ -89,7 +86,9 @@ const AllTasksScreen = ({ navigation }: any) => {
 
       <View style={styles.tasksHeader}>
         <Text style={styles.tasksTitle}>
-          {filterByDate ? `Tasks for ${selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : 'All Tasks'}
+          {filterByDate
+            ? `Tasks for ${selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+            : 'All Tasks'}
         </Text>
         {filterByDate && (
           <TouchableOpacity onPress={() => setFilterByDate(false)}>

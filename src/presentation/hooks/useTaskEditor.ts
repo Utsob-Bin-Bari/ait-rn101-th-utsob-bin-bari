@@ -6,7 +6,7 @@ import { taskEditorService } from '../../application/services/tasks/taskEditorSe
 import { imageService } from '../../application/services/tasks/imageService';
 import { userSessionStorage } from '../../infrastructure/storage/userSessionStorage';
 import { addTask, updateTask as updateTaskAction, removeTask } from '../../application/store/action/tasks';
-import { CreateTaskPayload } from '../../domain/types/tasks/TaskType';
+import { CreateTaskPayload, UpdateTaskPayload } from '../../domain/types/tasks/TaskType';
 
 export const useTaskEditor = ({ navigation, taskId }: any) => {
   const dispatch = useDispatch();
@@ -25,7 +25,10 @@ export const useTaskEditor = ({ navigation, taskId }: any) => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [isFavourite, setIsFavourite] = useState(false);
+  const [alarmEnabled, setAlarmEnabled] = useState(false);
   const [imageUri, setImageUri] = useState<string | null>(null);
+  const [refPhotoUri, setRefPhotoUri] = useState<string | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -67,9 +70,14 @@ export const useTaskEditor = ({ navigation, taskId }: any) => {
           image_path: result.data.image_path,
           image_url: result.data.image_url
         });
-        
+        setIsFavourite(result.data.is_favourite === 1);
+        setAlarmEnabled(result.data.alarm_enabled === 1);
+
         if (result.data.image_path) {
           setImageUri(result.data.image_path);
+        }
+        if (result.data.photo_dismiss_ref_path) {
+          setRefPhotoUri(result.data.photo_dismiss_ref_path);
         }
       }
     } catch (error) {
@@ -147,6 +155,55 @@ export const useTaskEditor = ({ navigation, taskId }: any) => {
     setShowTimePicker(true);
   }, []);
 
+  const handleToggleAlarm = useCallback((value: boolean) => {
+    setAlarmEnabled(value);
+    if (!value) {
+      setRefPhotoUri(null);
+    }
+  }, []);
+
+  const handleRefPhotoPick = useCallback(async (source: 'camera' | 'gallery') => {
+    try {
+      let imageAsset;
+      if (source === 'camera') {
+        imageAsset = await imageService.pickImageFromCamera();
+      } else {
+        imageAsset = await imageService.pickImageFromGallery();
+      }
+
+      if (imageAsset) {
+        const savedPath = await imageService.saveImageLocally(imageAsset, `ref_${taskId || Date.now()}`);
+        if (savedPath) {
+          setRefPhotoUri(savedPath);
+        } else {
+          setRefPhotoUri(imageAsset.uri);
+        }
+      }
+    } catch (error) {
+      console.error('Error picking reference photo:', error);
+      Alert.alert('Error', 'Failed to set reference photo');
+    }
+  }, [taskId]);
+
+  const handleRefPhotoRemove = useCallback(() => {
+    setRefPhotoUri(null);
+  }, []);
+
+  const handleToggleFavourite = useCallback(async () => {
+    const newValue = isFavourite ? 0 : 1;
+    setIsFavourite(!isFavourite);
+    if (taskId) {
+      try {
+        const updates: UpdateTaskPayload = { is_favourite: newValue };
+        await tasksService.updateTask(taskId, updates);
+        dispatch(updateTaskAction(taskId, updates));
+      } catch (error) {
+        setIsFavourite(isFavourite);
+        console.error('Error toggling favourite:', error);
+      }
+    }
+  }, [isFavourite, taskId, dispatch]);
+
   const validateTask = useCallback(() => {
     const isEdit = !!taskId;
     const validation = taskEditorService.validateTask(task, { allowPastDueDate: isEdit });
@@ -169,6 +226,11 @@ export const useTaskEditor = ({ navigation, taskId }: any) => {
       return;
     }
 
+    if (alarmEnabled && !refPhotoUri) {
+      Alert.alert('Reference Photo Required', 'Please set a reference photo to use photo dismiss');
+      return;
+    }
+
     try {
       setSaving(true);
 
@@ -180,8 +242,15 @@ export const useTaskEditor = ({ navigation, taskId }: any) => {
 
       const userId = sessionResult.data.id;
 
+      const alarmPayload = {
+        alarm_enabled: alarmEnabled ? 1 : 0,
+        alarm_time: alarmEnabled && task.due_date ? task.due_date : null,
+        photo_dismiss_enabled: alarmEnabled ? 1 : 0,
+        photo_dismiss_ref_path: alarmEnabled ? refPhotoUri : null,
+      };
+
       if (taskId) {
-        const updates = taskEditorService.prepareTaskForUpdate(task);
+        const updates = { ...taskEditorService.prepareTaskForUpdate(task), ...alarmPayload };
         const result = await tasksService.updateTask(taskId, updates);
         
         if (result.success) {
@@ -191,7 +260,7 @@ export const useTaskEditor = ({ navigation, taskId }: any) => {
           Alert.alert('Error', result.error || 'Failed to update task');
         }
       } else {
-        const preparedTask = taskEditorService.prepareTaskForSave(task, userId);
+        const preparedTask = { ...taskEditorService.prepareTaskForSave(task, userId), ...alarmPayload };
         const result = await tasksService.createTask(preparedTask);
         
         if (result.success && result.data) {
@@ -207,7 +276,7 @@ export const useTaskEditor = ({ navigation, taskId }: any) => {
     } finally {
       setSaving(false);
     }
-  }, [task, taskId, validateTask, getValidationErrorMessage, navigation, dispatch]);
+  }, [task, taskId, alarmEnabled, refPhotoUri, validateTask, getValidationErrorMessage, navigation, dispatch]);
 
   const handleDelete = useCallback(async () => {
     Alert.alert(
@@ -246,7 +315,10 @@ export const useTaskEditor = ({ navigation, taskId }: any) => {
     loading,
     saving,
     deleting,
+    isFavourite,
+    alarmEnabled,
     imageUri,
+    refPhotoUri,
     errors,
     isEditMode: !!taskId,
     showDatePicker,
@@ -256,12 +328,16 @@ export const useTaskEditor = ({ navigation, taskId }: any) => {
     handleTagsChange,
     handleImagePick,
     handleImageRemove,
+    handleRefPhotoPick,
+    handleRefPhotoRemove,
     handleDateChange,
     handleTimeChange,
     handleShowDatePicker,
     handleShowTimePicker,
+    handleToggleAlarm,
     handleSave,
-    handleDelete
+    handleDelete,
+    handleToggleFavourite
   };
 };
 

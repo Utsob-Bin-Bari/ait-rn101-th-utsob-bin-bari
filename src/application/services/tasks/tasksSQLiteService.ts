@@ -25,6 +25,7 @@ interface LocalTask {
   alarm_enabled?: number;
   photo_dismiss_enabled?: number;
   photo_dismiss_tolerance?: number;
+  photo_dismiss_ref_path?: string | null;
 }
 
 export type { Task };
@@ -94,6 +95,7 @@ const transformDbTaskToTask = (dbTask: LocalTask): Task => {
     alarm_enabled: dbTask.alarm_enabled ?? 0,
     photo_dismiss_enabled: dbTask.photo_dismiss_enabled ?? 0,
     photo_dismiss_tolerance: dbTask.photo_dismiss_tolerance ?? 0.7,
+    photo_dismiss_ref_path: dbTask.photo_dismiss_ref_path ?? null,
   };
 };
 
@@ -169,8 +171,9 @@ export const tasksSQLiteService = {
             `INSERT INTO tasks (
               local_id, title, description, status, priority, 
               due_date, tags, image_path, image_url, owner_id, 
-              created_at, updated_at, sync_status, needs_sync
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              created_at, updated_at, sync_status, needs_sync,
+              alarm_time, alarm_enabled, photo_dismiss_enabled, photo_dismiss_ref_path
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
               localId,
               task.title || '',
@@ -185,7 +188,11 @@ export const tasksSQLiteService = {
               timestamp,
               timestamp,
               'pending',
-              1
+              1,
+              task.alarm_time ?? null,
+              task.alarm_enabled ?? 0,
+              task.photo_dismiss_enabled ?? 0,
+              task.photo_dismiss_ref_path ?? null,
             ],
             (_, result) => {
               resolve(localId);
@@ -257,6 +264,26 @@ export const tasksSQLiteService = {
                 if (task.server_id !== undefined) {
                   updates.push('server_id = ?');
                   values.push(task.server_id);
+                }
+                if (task.is_favourite !== undefined) {
+                  updates.push('is_favourite = ?');
+                  values.push(task.is_favourite);
+                }
+                if (task.alarm_time !== undefined) {
+                  updates.push('alarm_time = ?');
+                  values.push(task.alarm_time);
+                }
+                if (task.alarm_enabled !== undefined) {
+                  updates.push('alarm_enabled = ?');
+                  values.push(task.alarm_enabled);
+                }
+                if (task.photo_dismiss_enabled !== undefined) {
+                  updates.push('photo_dismiss_enabled = ?');
+                  values.push(task.photo_dismiss_enabled);
+                }
+                if (task.photo_dismiss_ref_path !== undefined) {
+                  updates.push('photo_dismiss_ref_path = ?');
+                  values.push(task.photo_dismiss_ref_path);
                 }
 
                 updates.push('updated_at = ?');

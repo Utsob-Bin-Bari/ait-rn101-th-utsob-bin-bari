@@ -2,6 +2,9 @@ import ReactNativeBlobUtil from 'react-native-blob-util';
 
 const { fs } = ReactNativeBlobUtil;
 
+/** Strip file:// prefix so react-native-blob-util receives a raw filesystem path. */
+const toRawPath = (path: string): string => path.replace(/^file:\/\//, '');
+
 export const imageStorage = {
   getImageDirectory: (): string => {
     return `${fs.dirs.DocumentDir}/task_images`;
@@ -20,10 +23,11 @@ export const imageStorage = {
     try {
       await imageStorage.ensureDirectoryExists();
       
-      const filePath = `${imageStorage.getImageDirectory()}/${fileName}`;
-      await fs.writeFile(filePath, base64, 'base64');
+      const rawPath = `${imageStorage.getImageDirectory()}/${fileName}`;
+      await fs.writeFile(rawPath, base64, 'base64');
       
-      return filePath;
+      // Return a file:// URI so React Native's Image component can render it directly.
+      return `file://${rawPath}`;
     } catch (error) {
       console.error('Error saving image to storage:', error);
       throw error;
@@ -32,13 +36,14 @@ export const imageStorage = {
 
   loadImage: async (filePath: string): Promise<string> => {
     try {
-      const exists = await fs.exists(filePath);
+      const rawPath = toRawPath(filePath);
+      const exists = await fs.exists(rawPath);
       
       if (!exists) {
         throw new Error('Image file not found');
       }
       
-      const base64 = await fs.readFile(filePath, 'base64');
+      const base64 = await fs.readFile(rawPath, 'base64');
       return base64;
     } catch (error) {
       console.error('Error loading image from storage:', error);
@@ -48,10 +53,11 @@ export const imageStorage = {
 
   deleteImage: async (filePath: string): Promise<void> => {
     try {
-      const exists = await fs.exists(filePath);
+      const rawPath = toRawPath(filePath);
+      const exists = await fs.exists(rawPath);
       
       if (exists) {
-        await fs.unlink(filePath);
+        await fs.unlink(rawPath);
       }
     } catch (error) {
       console.error('Error deleting image from storage:', error);
@@ -75,7 +81,7 @@ export const imageStorage = {
 
   getImageSize: async (filePath: string): Promise<number> => {
     try {
-      const stats = await fs.stat(filePath);
+      const stats = await fs.stat(toRawPath(filePath));
       return Number(stats.size);
     } catch (error) {
       console.error('Error getting image size:', error);

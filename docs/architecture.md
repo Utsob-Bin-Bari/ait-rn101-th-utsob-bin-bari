@@ -46,6 +46,9 @@ Presentation  →  Application  →  Infrastructure
 | Animations | react-native-reanimated | ^4.1.3 |
 | Gestures | react-native-gesture-handler | ^2.29.1 |
 | Images | react-native-image-picker | ^8.2.1 |
+| Audio | react-native-sound | ^0.11.2 |
+| File System | react-native-fs | ^2.20.0 |
+| Image Resizing | react-native-image-resizer | ^3.0.10 |
 | SVG | react-native-svg | ^15.14.0 |
 | Network Detection | @react-native-community/netinfo | ^11.4.1 |
 | Mock Backend | json-server | ^0.17.4 |
@@ -61,7 +64,9 @@ Presentation  →  Application  →  Infrastructure
 The innermost layer — pure TypeScript with zero runtime dependencies.
 
 **Types (`src/domain/types/`):**
-- `tasks/TaskType.ts` — Core Task entity
+- `tasks/TaskType.ts` — Core Task entity, including:
+  - `photo_dismiss_ref_path: string | null` — permanent file path to the reference photo captured at task creation; present in `Task`, `CreateTaskPayload`, and `UpdateTaskPayload`
+  - `photo_dismiss_tolerance: number` — Hamming-distance tolerance threshold (0–1, default 0.7, mapped to ≤ 19/64 bits) for photo comparison
 - `tasks/SyncTypes.ts` — Sync queue entry shape
 - `tasks/ImageTypes.ts` — Image attachment metadata
 - `auth/LoginType.ts`, `SignUpType.ts`, `GuestUser.ts` — Auth payloads
@@ -100,6 +105,8 @@ Business logic and state orchestration. No I/O — depends only on Domain.
 | `tasks/searchFilterService.ts` | Search + filter operations |
 | `tasks/conflictResolutionService.ts` | 3-way merge (prepared, inactive — single-user) |
 | `notifications/notificationService.ts` | Schedule/cancel @notifee notifications |
+| `notifications/alarmAudioService.ts` | `play()` / `stop()` looping alarm audio via react-native-sound — **never called directly from screens; always via `useAlarmAudio` hook** |
+| `photoComparisonService.ts` | Offline pHash comparison: resize both images → compute difference hash → Hamming distance check against `photo_dismiss_tolerance` |
 | `settings/clearDataService.ts` | Wipe all local app data |
 | `settings/recoverDataService.ts` | Restore data from server |
 
@@ -136,6 +143,7 @@ I/O adapters — API, database, file system, network.
 - `DatabaseSchema.ts` — Table DDL: `tasks`, `sync_queue`, `user_session`
 - `userSessionStorage.ts` — Session persistence (auth token, guest flag)
 - `imageStorage.ts` — Local image file management
+- `imageStorageService.ts` — `saveReferencePhoto(taskId, tempUri): Promise<string>` copies temp URI to permanent app storage via RNFS; `deleteReferencePhoto(taskId): Promise<void>` removes the file
 
 **Utils (`src/infrastructure/utils/`):**
 - `NetworkService.ts` — `@react-native-community/netinfo` wrapper
@@ -147,13 +155,14 @@ I/O adapters — API, database, file system, network.
 
 UI only — screens, components, navigation, hooks. No business logic.
 
-**Screens (7):**
+**Screens (8):**
 - `LogInScreen.tsx`, `SignUpScreen.tsx` — Auth flow
 - `HomeScreen.tsx` — Dashboard with task stats
 - `AllTasksScreen.tsx` — Task list with search + filter
-- `CreateTaskScreen.tsx` — Task create / edit form
+- `CreateTaskScreen.tsx` — Task create / edit form (captures reference photo when photo-dismiss enabled)
 - `SettingScreen.tsx` — App settings + data management
 - `SyncManagementScreen.tsx` — Sync queue viewer + manual controls
+- `AlarmDismissScreen.tsx` — Full-screen alarm dismiss UI; plays looping audio on mount via `useAlarmAudio`; handles Dismiss (with optional photo comparison) and Snooze; **audio must fully stop before any navigation call**
 
 **Components (16 + 13 SVGs):** See [component-inventory.md](./component-inventory.md)
 
@@ -163,13 +172,16 @@ AppNavigator (Stack — root)
 ├── AuthStackNavigator (Stack)
 │   ├── LogInScreen
 │   └── SignUpScreen
+├── AlarmDismissScreen  ← modal, pushed by notification deep link (taskbell://alarm-dismiss)
 └── TabNavigator (Bottom Tabs)
     ├── HomeStackNavigator → HomeScreen
     ├── TasksStackNavigator → AllTasksScreen, CreateTaskScreen
     └── SettingsStackNavigator → SettingScreen, SyncManagementScreen
 ```
 
-**Custom Hooks (6):** `useLogin`, `useSignup`, `useTasks`, `useTaskEditor`, `useSettings`, `useSyncManagement`
+**Custom Hooks (7):** `useLogin`, `useSignup`, `useTasks`, `useTaskEditor`, `useSettings`, `useSyncManagement`, `useAlarmAudio`
+
+> `useAlarmAudio` — sole permitted caller of `alarmAudioService`. Starts looping audio on mount, guarantees `stop()` is called in `useEffect` cleanup before the component unmounts or navigates away. Screens must never import `alarmAudioService` directly.
 
 ---
 
@@ -220,7 +232,69 @@ App Start → DatabaseInit → Check userSessionStorage
 - `notificationService.ts` schedules @notifee local notifications on task creation/update
 - Notifications trigger at task due date (works when app is closed, Android reboot-safe)
 - Custom URL scheme `taskbell://` routes notification taps to specific task screens
+  - `taskbell://alarm-dismiss?taskId=<id>` deep-links directly to `AlarmDismissScreen`
 - Permissions requested on first launch; app functions without them
+
+**Looping Alarm Audio (Story 3.3):**
+- `AlarmDismissScreen` mounts → `useAlarmAudio` hook calls `alarmAudioService.play()` with loop enabled
+- On Dismiss or Snooze: `useAlarmAudio` calls `alarmAudioService.stop()` **synchronously before** any `navigation.goBack()` or `navigation.navigate()` call
+- `useEffect` cleanup in `useAlarmAudio` ensures audio stops if the component is unmounted by any other means (e.g., back gesture)
+- **Constraint:** `alarmAudioService` must never be imported or called directly from any screen or component — `useAlarmAudio` is the only permitted entry point
+
+### Photo Comparison — Offline pHash (Stories 3.4 + 3.5)
+
+All photo processing is fully offline — no network call at any step (FR20 constraint).
+
+**Reference Photo Capture (Story 3.4 — CreateTaskScreen):**
+
+```
+User taps "Capture Reference Photo"
+    ↓
+react-native-image-picker → temp URI (cleared on app restart)
+    ↓
+imageStorageService.saveReferencePhoto(taskId, tempUri)   ← Infrastructure
+    → RNFS.copyFile(tempUri, permanentPath)
+    → returns permanentPath
+    ↓
+permanentPath stored in task.photo_dismiss_ref_path (SQLite v3 column)
+```
+
+**Photo Comparison at Dismiss Time (Story 3.5 — AlarmDismissScreen):**
+
+```
+User taps "Dismiss"
+    ↓
+react-native-image-picker → live capture → liveTempUri
+    ↓
+photoComparisonService.compare(refPath, liveTempUri, tolerance)   ← Application
+    ↓
+  Step 1: react-native-image-resizer
+          resize refPath → 32×32 greyscale PNG (in-memory)
+          resize liveTempUri → 32×32 greyscale PNG (in-memory)
+    ↓
+  Step 2: Compute difference hash (dHash) for each resized image
+          → 64-bit binary string per image
+    ↓
+  Step 3: Hamming distance = count of differing bits (0–64)
+          tolerance (0–1) maps to maxDistance = round((1 - tolerance) × 64)
+          e.g. tolerance 0.7 → maxDistance ≤ 19
+    ↓
+  Returns { match: boolean; score: number }
+    ↓
+  match = true  → dismiss task, stop audio, navigate back
+  match = false → show "Photo mismatch" UI, prompt retry
+```
+
+**Layer Boundaries:**
+
+| Concern | Layer | File |
+|---|---|---|
+| Capture temp URI | Presentation | `AlarmDismissScreen` via `react-native-image-picker` |
+| Resize + hash + compare | Application | `photoComparisonService.ts` |
+| Permanent file read/write | Infrastructure | `imageStorageService.ts` |
+| Tolerance threshold stored | Domain | `TaskType.ts → photo_dismiss_tolerance` |
+
+> `photoComparisonService` does **not** import SQLite or RNFS directly. It receives file paths as arguments; Infrastructure resolves them before passing in.
 
 ---
 
@@ -233,6 +307,14 @@ App Start → DatabaseInit → Check userSessionStorage
 | `tasks` | Local task data mirror |
 | `sync_queue` | Pending server operations (FIFO) |
 | `user_session` | Auth token + guest flag persistence |
+
+**Schema Migrations:**
+
+| Version | Change |
+|---|---|
+| v1 | Initial schema: `tasks`, `sync_queue`, `user_session` |
+| v2 | Added alarm scheduling fields: `alarm_time`, `alarm_enabled` |
+| v3 | `ALTER TABLE tasks ADD COLUMN photo_dismiss_ref_path TEXT DEFAULT NULL` — permanent reference photo file path for photo-dismiss enforcement (Story 3.4) |
 
 ### State Management
 
@@ -265,3 +347,8 @@ Test file: `__tests__/syncManagement.test.ts`
 | last-write-wins conflict strategy | Single-user tasks — no concurrent edits possible currently |
 | diff-match-patch included but inactive | Infrastructure prepared for future multi-user collaboration |
 | Guest mode local-only | Enables zero-friction onboarding without backend dependency |
+| react-native-sound over Expo Audio | Bare workflow; direct native module gives reliable looping without Expo runtime |
+| RNFS for permanent photo storage | `react-native-image-picker` temp URIs are cleared between sessions; RNFS copy-to-documents ensures durability |
+| pHash (dHash) for photo comparison | Fully offline, no ML dependency, O(1) comparison after 32×32 resize; tolerant of lighting variance unlike pixel diff |
+| `useAlarmAudio` hook encapsulation | Prevents audio leak bugs — centralises lifecycle management so `stop()` is guaranteed before any navigation event |
+| `photo_dismiss_tolerance` stored per-task | Enables future per-task sensitivity tuning without schema changes; default 0.7 maps to Hamming ≤ 19/64 |

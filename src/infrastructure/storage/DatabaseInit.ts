@@ -58,6 +58,13 @@ export class DatabaseInit {
       await this.db.executeSql('CREATE INDEX IF NOT EXISTS idx_tasks_is_favourite ON tasks(is_favourite)');
       await this.setDatabaseVersion(2);
     }
+
+    if (version < 3) {
+      await this.db.executeSql(
+        'ALTER TABLE tasks ADD COLUMN photo_dismiss_ref_path TEXT DEFAULT NULL'
+      );
+      await this.setDatabaseVersion(3);
+    }
   }
 
   private async getDatabaseVersion(): Promise<number> {
